@@ -1,4 +1,4 @@
-# README!!
+# README - WESS
 
 Welcome to the WESS project. The Wireless Environmental Sensor System is a project designed to make monitoring the environment at wide range easier.
 We are developing a prototype for a nodal system of wireless sensors hubs connected to a main parent node that can display the collected data in an intuitive way.
@@ -6,13 +6,16 @@ We are developing a prototype for a nodal system of wireless sensors hubs connec
 # Developers:
 ## Data Aquisition
 Joshua Collier
+
 Zane Hernke
 
 ## Wireless Transmission
 Andrew Garzone
+
 Nahum Cortezzo
 
 ## Data Analysis
 Logan Maxwell
+
 Jesse Mistr
 
