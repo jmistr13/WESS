@@ -8,7 +8,6 @@ def mostRecentValidLoc (df: pd.DataFrame):
     :return df:
     """
     df_new = df.dropna(how='all')
-    df_new['transmitDateTime'] = pd.to_datetime(df['transmitDate'] + ' ' + df['transmitHour'].astype(str))
     df_new = df_new.sort_values(by=['sensorName', 'transmitDateTime'], ascending=False)
 
     # Forward fill missing lat and long values within each sensorName group
@@ -16,11 +15,8 @@ def mostRecentValidLoc (df: pd.DataFrame):
     df_new['long'] = df_new['long'].ffill()
 
     df_new = df_new.dropna(subset=['lat','long'])  # The most recent reading for a sensor has filtered it's location down, so dropping removes recent readings that are missing location
-    df_new = df_new.sort_values(by='transmitDateTime',ascending=False)  # Sorting by transmitDateTime while I still have it
     df_new = df_new.drop_duplicates(subset=['sensorName'], keep='first')  # Dropping duplicate sensor readings
 
-    # Drop the extra datetime column if not needed
-    df_new.drop(columns=['transmitDateTime'], inplace=True)
     return df_new
 
 def mostRecentInheritLoc (df: pd.DataFrame):
@@ -32,17 +28,12 @@ def mostRecentInheritLoc (df: pd.DataFrame):
     :return df:
     """
     df_new = df.dropna(how='all')
-    df_new['transmitDateTime'] = pd.to_datetime(df['transmitDate'] + ' ' + df['transmitHour'].astype(str))
     df_new = df_new.sort_values(by=['sensorName', 'transmitDateTime'], ascending=True)
 
     # Forward fill missing lat and long values within each sensorName group
     df_new['lat'] = df_new['lat'].ffill()
     df_new['long'] = df_new['long'].ffill()
 
-    #df_new = df_new.dropna(subset=['lat', 'long'])  # The most recent reading for a sensor has filtered it's location down, so dropping removes recent readings that are missing location
-    #df_new = df_new.sort_values(by='transmitDateTime', ascending=False)  # Sorting by transmitDateTime while I still have it
     df_new = df_new.drop_duplicates(subset=['sensorName'], keep='last')  # Dropping duplicate sensor readings
 
-    # Drop the extra datetime column if not needed
-    df_new.drop(columns=['transmitDateTime'], inplace=True)
     return df_new

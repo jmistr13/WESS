@@ -1,0 +1,12 @@
+{
+    "name": "Tilemaker to OpenTileMaps schema",
+    "type": "baselayer",
+    "version": "0.1",
+    "description": "Tile config based on opentilemap schema",
+    "format": "pbf",
+    "minzoom": "8",
+    "maxzoom": "14",
+    "bounds": "-122.460000,47.390000,-122.010000,47.830000",
+    "center": "-122.235000,47.610000,11",
+    "json": "{\"vector_layers\":[{\"id\":\"transportation\",\"description\":\"transportation\",\"fields\":{\"class\":\"String\"}},{\"id\":\"waterway\",\"description\":\"waterway\",\"fields\":{\"class\":\"String\"}},{\"id\":\"building\",\"description\":\"building\",\"fields\":{}}]}"
+}
