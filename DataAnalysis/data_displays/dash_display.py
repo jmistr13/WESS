@@ -4,6 +4,7 @@ import dash
 import numpy as np
 import plotly.graph_objects
 
+from customMethods import *
 from df_customMethods import *
 from dash import dcc, html
 #import plotly.graph_objects as go
@@ -137,11 +138,13 @@ def update_graph(selectedPollutant, selectedSensor):
     )
     return fig
 
+# Page tabs can be found in here
 app.layout = html.Div([
     html.H1("WESS"),
     dcc.Tabs(id='tabs', value='map-page', children=[
         dcc.Tab(label='Map', value='map-page'),
-        dcc.Tab(label='Data Graphs', value='graph-page')
+        dcc.Tab(label='Data Graphs', value='graph-page'),
+        dcc.Tab(label='Connection', value='connection-page')
     ]),
     html.Div(id='tabs-content') #This HTML comes from the render_content function, that way it can be swapped out between pages
 ])
@@ -154,23 +157,30 @@ def render_content(tab):
         return html.Div([ #HTML that defines the map page
             #html.H2("Data"),
             dcc.Store(id='stored-data'), #keeping this just in case but I don't think ill use it
-            dcc.Dropdown(
-                id='colorDropdown',
-                options=[
-                    {'label': 'CO', 'value': 'CO'},
-                    {'label': 'NH3', 'value': 'NH3'},
-                    {'label': 'NO2', 'value': 'NO2'},
-                    {'label': 'TDS', 'value': 'TDS', 'disabled': True},  # Disabling these for now
-                    {'label': 'Turbidity', 'value': 'turbidity', 'disabled': True},
-                ],
-                placeholder='Select a pollutant to map',
-                optionHeight=50,
-                clearable=False
-            ),
+            # dcc.Dropdown(
+            #     id='colorDropdown',
+            #     options=[
+            #         {'label': 'CO', 'value': 'CO'},
+            #         {'label': 'NH3', 'value': 'NH3'},
+            #         {'label': 'NO2', 'value': 'NO2'},
+            #         {'label': 'TDS', 'value': 'TDS', 'disabled': True},  # Disabling these for now
+            #         {'label': 'Turbidity', 'value': 'turbidity', 'disabled': True},
+            #     ],
+            #     placeholder='Select a pollutant to map',
+            #     optionHeight=50,
+            #     clearable=False
+            # ),
+            dcc.Tabs(id='colorDropdown', value='CO', children=[  # I know it's called a dropdown, I dont feel like changing the name :p
+                dcc.Tab(label='CO', value='CO'),
+                dcc.Tab(label='NH3', value='NH3'),
+                dcc.Tab(label='NO2', value='NO2'),
+                dcc.Tab(label='TDS', value='TDS', disabled=True),  # Disabling for now
+                dcc.Tab(label='Turbidity', value='turbidity', disabled=True),
+            ]),
             dcc.Graph(id='map'),
             html.Div(id='sensor-data'),
             html.Button('Update Map Data from CSV', id='update-button', n_clicks=0),
-        ])
+        ]),
     elif tab == 'graph-page':
         return html.Div([ #HTML that defines the Graph page
             #html.H2('Select a sensor to graph'),
@@ -178,7 +188,7 @@ def render_content(tab):
                 id='graphSensorNameDropdown',
                 options=df['sensorName'].unique(),
                 placeholder='Select a sensor',
-                optionHeight=30,
+                optionHeight=80,
                 clearable=False
             ),
             dcc.Tabs(id='graphDropdown', value='CO', children=[ #I know it's called a dropdown, I dont feel like changing the name :p
@@ -190,10 +200,24 @@ def render_content(tab):
             ]),
             dcc.Graph(id='graph'),
             html.Button('Update Map Data from CSV', id='update-button', n_clicks=0),
+        ]),
+    elif tab == 'connection-page':
+        return html.Div([ #HTML that defines the Graph page
+            #f"Would you like to see this data on your mobile device?<"
+            #f"Connect to {get_wifi_name()} and navigate to {get_local_ip()}:8050 on your mobile deivce"
+            html.P("Would you like to see this data on your mobile device?"),
+            html.P([
+                "Connect to ",
+                html.Strong(get_wifi_name()),  # Makes the Wi-Fi name bold
+                " and navigate to ",
+                html.Strong(f"{get_local_ip()}:8050"),  # Makes the IP address bold
+                " on your mobile device."
+            ])
         ])
+
 
 
 # Run the app
 if __name__ == '__main__':
     #app.run(host='10.18.158.12', port=8050) #The host IP was my local IP on UW wifi, was able to host webserver and access it with phone
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=8050, debug=False)
