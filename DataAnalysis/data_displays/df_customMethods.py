@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 def mostRecentValidLoc (df: pd.DataFrame):
     """
@@ -11,6 +12,7 @@ def mostRecentValidLoc (df: pd.DataFrame):
     df_new = df_new.sort_values(by=['sensorName', 'transmitDateTime'], ascending=False)
 
     # Forward fill missing lat and long values within each sensorName group
+    df_new.replace('', np.nan, inplace=True) #Just in case fillna has already been run, turn empty strigns back to nan so ffill works
     df_new['lat'] = df_new['lat'].ffill()
     df_new['long'] = df_new['long'].ffill()
 
@@ -31,6 +33,7 @@ def mostRecentInheritLoc (df: pd.DataFrame):
     df_new = df_new.sort_values(by=['sensorName', 'transmitDateTime'], ascending=True)
 
     # Forward fill missing lat and long values within each sensorName group
+    df_new.replace('', np.nan, inplace=True) #Just in case fillna has already been run, turn empty strigns back to nan so ffill works
     df_new['lat'] = df_new['lat'].ffill()
     df_new['long'] = df_new['long'].ffill()
 
