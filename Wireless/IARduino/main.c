@@ -15,6 +15,15 @@
 float CO_val;
 float NH3_val;
 float NO2_val;
+float TDS_val;
+float ec25_val;
+float ec_val;
+float PC4_Voltage;
+float Average_Hourly_CO;
+float Average_Hourly_NH3;
+float Average_Hourly_NO2;
+float Average_Hourly_TDS;
+
 
 uint16_t NH3baseR;
 uint16_t NO2baseR;
@@ -24,9 +33,24 @@ uint16_t CO_baseR;
 #define MAX_DIGITS 4
 #define NUM_READINGS 3
 #define MAX_CHARS 240
-#define SECONDS 10
+#define SECONDS 5
+#define ADC_RANGE 4096
+#define V_REF 5
+#define KVALUE 1
+#define TDS_FACTOR 0.5
+#define WATER_TEMPERATURE 25                     //Assuming room temp water 25 deg C - more accurate readings can be made if we actually took water temps
+#define DATA_POINTS_PER_HOUR 400                 //Current implementation takes new samples every 9 seconds... 3600 seconds in an hour so 3600/9 = 400 samples per hour
 
-uint16_t readings[NUM_READINGS];
+int samples_taken = 0;                            //This keeps track of how many samples have been taken since system startup
+
+float  CO_DataPoints[DATA_POINTS_PER_HOUR];       //Buffer of size DATA_POINTS_PER_HOUR to store DATA_POINTS_PER_HOUR CO values
+float NH3_DataPoints[DATA_POINTS_PER_HOUR];       //Buffer of size DATA_POINTS_PER_HOUR to store DATA_POINTS_PER_HOUR NH3 values
+float NO2_DataPoints[DATA_POINTS_PER_HOUR];       //Buffer of size DATA_POINTS_PER_HOUR to store DATA_POINTS_PER_HOUR NO2 values
+float TDS_DataPoints[DATA_POINTS_PER_HOUR];       //Buffer of size DATA_POINTS_PER_HOUR to store DATA_POINTS_PER_HOUR TDS values
+
+uint16_t gas_readings[NUM_READINGS];             //Buffer of size 3 to hold CO, NH3, NO2 values
+uint16_t water_readings[NUM_READINGS-1];         //Buffer of size 2 to hold TDS and TURB values
+
 
 enum channel {
   CH_NH3, CH_NO2, CH_CO
@@ -47,11 +71,12 @@ void configure_rcc(void) {
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);      // Init USART3 clock
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);       // Init GPIOC clock
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);       // Init GPIOB clock
-    
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);       // Init GPIOA clock
 
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);        // init ADC1 clock
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA2, ENABLE);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC2, ENABLE);        // init ADC2 clock
+
+    //RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA2, ENABLE);
 }
 
 /* Configure GPIO pins 10 and 11 for Port C and pin 1 for Port B
@@ -63,10 +88,17 @@ void configure_gpio(void) {
     GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
     GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP;
     GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_Init(GPIOC, &GPIO_InitStruct);                         // Apply config to port C
+    GPIO_Init(GPIOC, &GPIO_InitStruct);                         // Apply config to port C for LORA module config
 
-    GPIO_PinAFConfig(GPIOC, GPIO_PinSource10, GPIO_AF_USART3);
-    GPIO_PinAFConfig(GPIOC, GPIO_PinSource11, GPIO_AF_USART3);
+    GPIO_PinAFConfig(GPIOC, GPIO_PinSource10, GPIO_AF_USART3);  // Activate alt function of pin 10 for UART
+    GPIO_PinAFConfig(GPIOC, GPIO_PinSource11, GPIO_AF_USART3);  // Activate alt function of pin 11 for UART
+    
+    GPIO_InitStruct.GPIO_Pin = GPIO_Pin_4 | GPIO_Pin_5;       // Reconfigure easy setup struct to target pins 4 and 5
+    GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AN;                 // Reconfigure easy setup struct for analog mode
+    GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;             // Reconfigure easy setup struct for no pull
+    GPIO_Init(GPIOC, &GPIO_InitStruct);                       // Apply config to port C for water sensor pins (PC4 and PC5)
+
+    
     
     GPIO_InitStruct.GPIO_Pin = GPIO_Pin_4 | GPIO_Pin_5 | GPIO_Pin_6;                      // Pin PA4 = CO, Pin PA5 = NH3, Pin PA6 = NO2 of the gas sensor
     GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AN;                                             // Set to analog mode
@@ -123,9 +155,18 @@ void configure_adc(void) {
     ADC_RegularChannelConfig(ADC1, ADC_Channel_4, 1, ADC_SampleTime_15Cycles);  // Channel 4 for CO 15cycles allows for a more stable reading (should be between 1-1000)
     ADC_RegularChannelConfig(ADC1, ADC_Channel_5, 2, ADC_SampleTime_15Cycles);  // Channel 5 for NH3 (should range from 1-300)
     ADC_RegularChannelConfig(ADC1, ADC_Channel_6, 3, ADC_SampleTime_15Cycles);  // Channel 6 for NO2 (should range from 0.05-10)
+    ADC_Cmd(ADC1, ENABLE);                                                      // Enable ADC1
+    ADC_EOCOnEachRegularChannelCmd(ADC1, ENABLE);                               // Enable EOC on ADC 1 flag for each channel conversion
+    
+    ADC_InitStruct.ADC_NbrOfConversion = (NUM_READINGS-1);                       // Reconfigur easy setup struct for 2 channels since we only have 2 water sensors
+    ADC_Init(ADC2, &ADC_InitStruct);                                             // Apply easy config struct to ADC 2 to set up ADC for water sensors
+    ADC_RegularChannelConfig(ADC2, ADC_Channel_14, 1, ADC_SampleTime_15Cycles);  // Channel 14 for TDS 15cycles allows for a more stable reading (should be between 1-1000)
+    ADC_RegularChannelConfig(ADC2, ADC_Channel_15, 2, ADC_SampleTime_15Cycles);  // Channel 15 for TURB 15cycles allows for a more stable reading (should be between 1-1000)
+    ADC_Cmd(ADC2 , ENABLE);                                                      // Enable ADC2
+    ADC_EOCOnEachRegularChannelCmd(ADC2, ENABLE);                                // Enable EOC flag for each channel conversion
 
-    ADC_Cmd(ADC1, ENABLE); // Enable ADC1
-    ADC_EOCOnEachRegularChannelCmd(ADC1, ENABLE);               // Enable EOC flag for each channel conversion
+
+
 
 }
 
@@ -151,21 +192,21 @@ uint16_t getResistance(channel_t channel) {
     switch (channel) {
         case CH_CO:      
             for(int i = 0; i < 100; i++) {
-                rs += readings[0];
+                rs += gas_readings[0];
                 counter++;
                 delay_ms(2);
             }
             return rs/counter;
         case CH_NH3:
             for(int i = 0; i < 100; i++) {
-                rs += readings[1];
+                rs += gas_readings[1];
                 counter++;
                 delay_ms(2);
             }
             return rs/counter;
         case CH_NO2:
             for(int i = 0; i < 100; i++) {
-                rs += readings[2];
+                rs += gas_readings[2];
                 counter++;
                 delay_ms(2);
             }
@@ -179,20 +220,38 @@ uint16_t getResistance(channel_t channel) {
 
 /* Read analogue data from ADC1 and convert to 16-bit unsigned integer
 */
-void Read_ADC(void) {
+void Read_Gas_ADC(void) {
     //Each sensor reading gives a RAW ADC conversion value between 0 and 4095 
     //Each reading is normalized to this scale and linearly transformed to match the 
     //Reading range that is compatible with the MICS6814 gas sensor for each gas concentration
     ADC_SoftwareStartConv(ADC1);
     while (ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) == RESET);
-    readings[0] = /* (uint16_t) ( */ ADC_GetConversionValue(ADC1)/*/4095)*999 + (1-52.9626)*/;             //Get CO, normalize, and recalibrate
+    gas_readings[0] = ADC_GetConversionValue(ADC1);             //Get RAW ADC CO reading
+    ADC_ClearFlag(ADC1, ADC_FLAG_EOC);                            // Clear the EOC flag for the next channel
+
     while (ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) == RESET);
-    readings[1] = /* (uint16_t) ( */ ADC_GetConversionValue(ADC1)/*/4095)*299 + (1-9.25079)*/;             //Get NH3, normalize, and recalibrate
+    gas_readings[1] = ADC_GetConversionValue(ADC1);             //Get RAW ADC NH3 reading
+    ADC_ClearFlag(ADC1, ADC_FLAG_EOC);                            // Clear the EOC flag for the next channel
+
     while (ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) == RESET);
-    readings[2] = /* (uint16_t) ( */ ADC_GetConversionValue(ADC1)/*/4095)*(10-0.05)+(0.05-6.02919)*/;      //Get NO2, normalize, and recalibrate
+    gas_readings[2] = ADC_GetConversionValue(ADC1);             //Get RAW ADC NO2 reading
+    ADC_ClearFlag(ADC1, ADC_FLAG_EOC);                            // Clear the EOC flag for the next channel
+    
     return;
 
-    //return ADC_GetConversionValue(ADC1);
+}
+
+void Read_Water_ADC(void) {
+    ADC_SoftwareStartConv(ADC2);
+    while (ADC_GetFlagStatus(ADC2, ADC_FLAG_EOC) == RESET);
+    water_readings[0] = ADC_GetConversionValue(ADC2);             //Get RAW ADC TDS reading
+    ADC_ClearFlag(ADC2, ADC_FLAG_EOC);                            // Clear the EOC flag for the next channel
+
+    while (ADC_GetFlagStatus(ADC2, ADC_FLAG_EOC) == RESET);
+    water_readings[1] = ADC_GetConversionValue(ADC2);           //Get RAW ADC TURB reading
+    ADC_ClearFlag(ADC2, ADC_FLAG_EOC);                            // Clear the EOC flag for the next channel
+
+    return;
 }
 
 void calibrate_MICS() {
@@ -244,25 +303,25 @@ void calibrate_MICS() {
         delay_ms(50);
         for (int i = 0; i < 3; i++) {
             //Read new ADC data each time
-            Read_ADC();
+            Read_Gas_ADC();
             delay_ms(1);
-            rs += readings[0];
+            rs += gas_readings[0];
         }
         curCO = rs/3;
         rs = 0;
         delay_ms(50);
         for (int i = 0; i < 3; i++) {
-            Read_ADC();
+            Read_Gas_ADC();
             delay_ms(1);
-            rs += readings[1];
+            rs += gas_readings[1];
         }
         curNH3 = rs/3;
         rs = 0;
         delay_ms(50);
         for (int i = 0; i < 3; i++) {
-            Read_ADC();
+            Read_Gas_ADC();
             delay_ms(1);
-            rs += readings[2];
+            rs += gas_readings[2];
         }
         curNO2 = rs/3;
 
@@ -354,11 +413,41 @@ float measure_MICS(gas_t gas) {
     return isnan(c) ? -1 : c;
 }
 
+float get_TDS() {  
+  PC4_Voltage = (water_readings[0]/4096.0)*5.0;  //Conver RAW ADC reading to a voltage
+  ec_val = (133.42*pow(PC4_Voltage,3) - 255.86*pow(PC4_Voltage, 2) + 857.39*PC4_Voltage)*KVALUE;
+  ec25_val = ec_val / (1.0 + 0.02*(WATER_TEMPERATURE-25.0));
+  TDS_val = ec25_val * TDS_FACTOR;
+  return TDS_val;
+}
+
+void Average_All_Data(){
+  float sum = 0;
+  for(int i = 0; i<DATA_POINTS_PER_HOUR ; i++){ 
+    sum = sum + CO_DataPoints[i];                           // Sum up all the data points taken over the last hour
+  }
+  Average_Hourly_CO = sum/((float)DATA_POINTS_PER_HOUR);    // Divide the sum of all data points by the number of data points to update average
+  sum = 0;                                                  // Reset the value of sum to 0 for next computation
+  for(int i = 0; i<DATA_POINTS_PER_HOUR ; i++){
+    sum = sum + NH3_DataPoints[i];                          // Sum up all the data points taken over the last hour
+  }
+  Average_Hourly_NH3 = sum/((float)DATA_POINTS_PER_HOUR);   // Divide the sum of all data points by the number of data points to update average
+  sum = 0;                                                  // Reset the value of sum to 0 for next computation
+  for(int i = 0; i<DATA_POINTS_PER_HOUR ; i++){
+    sum = sum + NO2_DataPoints[i];                          // Sum up all the data points taken over the last hour
+  }
+  Average_Hourly_NO2 = sum/((float)DATA_POINTS_PER_HOUR);   // Divide the sum of all data points by the number of data points to update average
+  sum = 0;                                                  // Reset the value of sum to 0 for next computation
+  for(int i = 0; i<DATA_POINTS_PER_HOUR ; i++){
+    sum = sum + TDS_DataPoints[i];                          // Sum up all the data points taken over the last hour
+  }
+  Average_Hourly_TDS = sum/((float)DATA_POINTS_PER_HOUR);   // Divide the sum of all data points by the number of data points to update average
+
+}
 
 int main() {
   
     __enable_irq();
-    
     configure_rcc();
     configure_gpio();
     configure_adc();
@@ -376,22 +465,48 @@ int main() {
     calibrate_MICS();
     
     char str[MAX_CHARS];
+    char hourly_data[MAX_CHARS];
+    char hn[MAX_CHARS];
     char n[MAX_CHARS];
 
     while (1) {
         // other RYLR998 module has address 2, also of the same band and net ID
+      
+        if (samples_taken == DATA_POINTS_PER_HOUR){
+            samples_taken = 0;                        //reset samples taken
+            Average_All_Data();                       //compute hourly averages
+                                                      //send out hourly average data
+            USART_SendStringWithNewLine("HOURLY DATA SENT");
+            char hresp[MAX_CHARS] = "SEND=2,";
+            sprintf(hourly_data, "Hourly CO: %f, Hourly NH3: %f, Hourly NO2: %f, Hourly TDS: %f", CO_val, NH3_val, NO2_val, TDS_val); 
+            sprintf(hn, "%u", strlen(hourly_data));
+            sprintf(hresp, n);
+            sprintf(hresp, ",");
+            sprintf(hresp, hourly_data);
+            USART_SendATCommand(hresp);
+        }
+      
         char resp[MAX_CHARS] = "SEND=2,";
-        Read_ADC();
-        CO_val = measure_MICS(CO);
-        NH3_val = measure_MICS(NH3);
-        NO2_val = measure_MICS(NO2);
+        Read_Gas_ADC();                                                                       // Get new gas data 
+        Read_Water_ADC();                                                                     // Get new water data
+        CO_val = measure_MICS(CO);                                                            // Update current CO val
+        NH3_val = measure_MICS(NH3);                                                          // Update current NH3 val
+        NO2_val = measure_MICS(NO2);                                                          // Update current NO2 val
+        TDS_val = get_TDS();                                                                  // Update current TDS val
         
-        sprintf(str, "CO: %f, NH3: %f, NO2: %f", CO_val, NH3_val, NO2_val);
-        sprintf(n, "%u", strlen(str));
-        strcat(resp, n);
+        CO_DataPoints[samples_taken] = CO_val;
+        NH3_DataPoints[samples_taken] = NH3_val;
+        NO2_DataPoints[samples_taken] = NO2_val;
+        TDS_DataPoints[samples_taken] = TDS_val;
+
+         
+        sprintf(str, "%f,%f,%f,%f", CO_val, NH3_val, NO2_val, TDS_val); // Print terminal data
+        sprintf(n, "%u", strlen(str));                                                        
+        strcat(resp, n);                                                                    
         strcat(resp, ",");
         strcat(resp, str);
-        USART_SendATCommand(resp); // Transmit data
-        delay_ms(5000);
+        USART_SendATCommand(resp);                                                            // Transmit data
+        samples_taken++;                                                                      // Update the number of samples taken this hour since system startup
+        delay_ms(2000);                                                                       // Short delay
     }
 }
