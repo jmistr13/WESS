@@ -8,77 +8,84 @@ import plotly.express as px
 
 from df_customMethods import * #import all custom methods for data frames
 
+filename = 'DataAnalysis/appDev/data2.csv'
+df = loadAndProcessData(filename)
+
+last_modified_time = get_csv_modified_time(filename) # make sure csv stays up to date
+
+# Ranges for pollutants for cmap
+pollutant_ranges = {
+    # Values in PPM
+    'CO': [0, 50],
+    'NH3': [0, 50],
+    'NO2': [0, 3],
+    'TDS': [0, 500],
+    'turbidity': [0, 10] 
+}
+
 def layout():
     return html.Div([
-        html.Div([
-            html.H2('Pollutant to Display'), #text above checklist
+        dcc.Graph(id='sensor-map'),
 
-            dcc.RadioItems(options=[
-                {'label':'CO', 'value':'CO'},
-                {'label':'NH3', 'value':'NH3'},
-                {'label':'NO2', 'value':'NO2'},
-                {'label':'TDS', 'value':'TDS'},
-                {'label':'Turbidity', 'value':'turbidity'}],
-                value='CO', #default selected
-                labelStyle={"display": "inline-flex", "align-items": "left", "margin-right": "15px","accent-color": "#20A4F3"}, #style options
-                id='data-select')
-            ], style={"flex": "1",'align-items':'center',"text-align":"center","padding-right":'0%'}),
+        #update map content
+        dcc.Interval(
+            id='interval-component',
+            interval=5000, # in milliseconds
+            n_intervals=0
+        ),
 
-        html.Br(), #break
+        dcc.Dropdown(options=[
+            {'label':'CO', 'value':'CO'},
+            {'label':'NH3', 'value':'NH3'},
+            {'label':'NO2', 'value':'NO2'},
+            {'label':'TDS', 'value':'TDS'},
+            {'label':'Turbidity', 'value':'turbidity'}],
+            value='CO',
+            id='data-select',
+            className='custom-dropdowns',
+        ),
 
-        #Component to display map
-        dcc.Graph(id='sensor-map')
     ])
 
 #generates map based on changes for checked data
-def update_map(selected_values):
-    df_recent = loadAndProcessData() #this is the real hack, generating a new df_recent everytime the map is updated, probably computationally heavy
-    #alternative to doing this is using a dcc store, but it requires dataframe to convert to JSON, messes with the formatting of some of the numbers?
+def update_map(selectedPollutant,n_intervals):
+    global df, last_modified_time
 
-    fig = px.scatter_mapbox(
-        df_recent, #dataframe
+    # Check if the CSV file has been modified
+    current_modified_time = get_csv_modified_time(filename)
+    if current_modified_time > last_modified_time:
+        df = loadAndProcessData(filename)  # Reload the data
+        last_modified_time = current_modified_time  # Update the last known modification time
+
+    fig = px.scatter_map( # Using plotly express, not graph objects
+        df,
         lat='lat',
-        lon='lon',
-        hover_name='sensorName', #name of sensor
-        hover_data=selected_values,
-        center=dict(lat=df_recent['lat'].mean(), lon=df_recent['long'].mean()), # Places center of map at average lat and long
-        zoom=14, # Arbitrary value, default zoom value for map 
-        map_style='outdoors'
+        lon='long', # Keep in mind plotly refers to this as lon, but we call it long
+        size=np.linspace(20, 20, len(df)), # just making an array of 20's with length of df, the size needs a value for every data point
+        color=selectedPollutant, # whatever value is here is what will define the color of the points
+        range_color=pollutant_ranges.get(selectedPollutant, [0,1]), #selectedPollutant
+        #color_continuous_scale='Jet', #I quite like this one too
+        color_continuous_scale=["rgb(0, 255, 0)", "rgb(120, 255, 0)", "rgb(255, 255, 0)", "rgb(255, 120, 0)", "rgb(255, 0, 0)"], # green to yellow to red
+        center=dict(lat=df['lat'].mean(), lon=df['long'].mean()), # Places center of map at average lat and long
+        zoom=14, #This zoom works well for campus size, this number has no real scale so its trial and error
+        hover_name='sensorName',
+        map_style='carto-positron',
+        #mapbox_style='none',
+        hover_data=dict(lat=False, long=False, transmitDateTime=True, CO=True, NH3=True, NO2=True, TDS=True, turbidity=True) #False removes from hover, true keeps it in
+        #TODO: Figure out how to hide "size" in the hover data
     )
-    # Update hovertext based on checklist values
-    hovertext = []
-    if 'CO' in selected_values:
-        hovertext.append(df_recent['CO'].astype(str))
-    if 'NH3' in selected_values:
-        hovertext.append(df_recent['NH3'].astype(str))
-    if 'NO2' in selected_values:
-        hovertext.append(df_recent['NO2'].astype(str))
-    if 'TDS' in selected_values:
-        hovertext.append(df_recent['TDS'].astype(str))
-    if 'turbidity' in selected_values:
-        hovertext.append(df_recent['turbidity'].astype(str))
-
-    # Combine selected hovertext values
-    combined_hovertext = ['<br>'.join(item) for item in zip(*hovertext)]
     
-    # Update the map figure with new hovertext
-    fig.update_traces(hovertext=combined_hovertext)
-    fig.update_layout()
-
+    fig.update_layout(
+        title=f"Most Recent {selectedPollutant} Reading",
+    )
     return fig
 
 def register_callbacks(wessApp):
+    # Update when selection changes
     wessApp.callback(
         Output('sensor-map', 'figure'),
-        Input('data-select', 'value')
+        Input('data-select', 'value'), # user select refresh
+        Input('interval-component', 'n_intervals')  # time refresh
     )(update_map)
-
-def loadAndProcessData():
-    df = pd.read_csv('data2.csv', usecols=['sensorName', 'lat', 'long', 'transmitDateTime', 'CO', 'NH3', 'NO2', 'TDS', 'turbidity'],
-                     comment='#') #data2 is a larger one I had chatGPT make
-    df_new = mostRecentValidLoc(df) #TODO: Consider making a mode or swtich that changes which custom method we use?
-    df_new = df_new.fillna('') #Filling nan with empty string,
-    df_new.to_csv('newdata.csv', index=True)
-    return df_new
 
 #TODO: see if we can load map before tab to avoid loading errors

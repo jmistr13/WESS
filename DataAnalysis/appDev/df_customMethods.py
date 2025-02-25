@@ -1,6 +1,7 @@
 #df_customMethods - Logan
 import pandas as pd
 import numpy as np
+import os
 
 def loadAndProcessData(filename):
     this_df = pd.read_csv(filename, usecols=['sensorName', 'lat', 'long', 'transmitDateTime', 'CO', 'NH3', 'NO2', 'TDS', 'turbidity'],
@@ -62,3 +63,6 @@ def mostRecentInheritLoc (df: pd.DataFrame):
     df_new = df_new.drop_duplicates(subset=['sensorName'], keep='last')  # Dropping duplicate sensor readings
 
     return df_new
+
+def get_csv_modified_time(filename):
+    return os.path.getmtime(filename)

@@ -11,17 +11,6 @@ filename = 'DataAnalysis/appDev/data2.csv'
 df = pd.read_csv(filename, usecols=['sensorName', 'lat', 'long', 'transmitDateTime', 'CO', 'NH3', 'NO2', 'TDS', 'turbidity'],
                           comment='#', parse_dates=['transmitDateTime'])
 #print(df)
-
-# Ranges for pollutants for cmap
-pollutant_ranges = {
-    # Values in PPM
-    'CO': [0, 50],
-    'NH3': [0, 50],
-    'NO2': [0, 3],
-    'TDS': [0, 500],
-    'turbidity': [0, 10] 
-}
-
 # Colors for trendline plot
 pollutant_colors = {
     'CO': '#5BC0EB',
@@ -43,7 +32,8 @@ def layout():
             html.Div([
                 html.H2('Pollutants to Display'), #text above checklist
 
-                dcc.Checklist(options=[{'label':'CO', 'value':'CO'},
+                dcc.Checklist(options=[
+                    {'label':'CO', 'value':'CO'},
                     {'label':'NH3', 'value':'NH3'},
                     {'label':'NO2', 'value':'NO2'},
                     {'label':'TDS', 'value':'TDS'},
@@ -76,40 +66,41 @@ def update_graph(selectedPollutants, selectedSensor):
     if dfThis['transmitDateTimeFormatted'].nunique() <= 1:
         print("Warning: Only one unique timestamp found for", selectedSensor)
 
-    fig = px.scatter()
+    fig = px.scatter() #create plot
 
+    #add data to plot for each checked value
     for pollutant in selectedPollutants:
         if pollutant in dfThis.columns:  # Ensure the pollutant exists in the DataFrame
             fig.add_scatter(
                 x=dfThis['transmitDateTimeFormatted'],
                 y=dfThis[pollutant],
                 mode='lines+markers',
-                marker=dict(color=pollutant_colors[pollutant], size=6,symbol='circle'),
+                marker=dict(color=pollutant_colors[pollutant], size=6,symbol='circle'), # marker on graph
                 name=pollutant,
-                hovertemplate=f'{pollutant}: '+'%{y}<br>Time: %{x|%H:%M}<extra></extra>'
+                hovertemplate=f'{pollutant}: '+'%{y}<br>Time: %{x|%H:%M}<extra></extra>' # hovertext display
             )
     
     # Update layout
     fig.update_layout(
-        hovermode='x unified',
-        title=f"Pollutants at {selectedSensor}",
-        xaxis_title="DateTime",
-        yaxis_title="Concentration (PPM)",
-        xaxis=dict(tickformat="%m-%d-%Y", type='date'),
-        legend=dict(
+        hovermode='x unified', # style of hover text
+        title=f"Pollutants at {selectedSensor}", # figure title
+        xaxis_title="DateTime", # x axis
+        yaxis_title="Concentration (PPM)", # y axis
+        xaxis=dict(tickformat="%m-%d-%Y", type='date'), # convert datetime format
+        legend=dict( #format legend
             orientation='h',
             x=0.5, y=1,
             xanchor='center', yanchor='bottom',
-            itemclick=False, itemdoubleclick=False,
+            itemclick=False, itemdoubleclick=False, #disable clicking on legend features
         ),
-        margin=dict(l=40, r=40, t=40, b=40),
+        margin=dict(l=40, r=40, t=40, b=40), # space for legend
     )
     
     return fig
 
 def register_callbacks(wessApp):
     wessApp.callback(
-        Output('trendline-graph', 'figure'),
-        Input('data-select', 'value'),
-        Input('sensor-select', 'value')
+        Output('trendline-graph', 'figure'), # graph
+        Input('data-select', 'value'), # check
+        Input('sensor-select', 'value') # radio
     )(update_graph)

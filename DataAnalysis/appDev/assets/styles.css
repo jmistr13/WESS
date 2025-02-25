@@ -50,3 +50,10 @@ h2 {
     font-weight: bold;
     border-top: 6px solid #009B72 !important;
 }
+
+.custom-dropdowns {
+    background-color: #f2f4ff;
+}
+.custom-dropdown {
+    color: #272838,
+}
