@@ -4,10 +4,10 @@ import dash
 import pandas as pd
 from dash import html, dcc, callback, Input, Output
 import plotly.express as px
-from df_customMethods import *
-from wessApp import csv_path
 
-filename = filename = csv_path()
+from df_customMethods import *
+
+filename = csv_path()
 
 df = pd.read_csv(filename, usecols=['sensorName', 'lat', 'long', 'transmitDateTime', 'CO', 'NH3', 'NO2', 'TDS', 'turbidity'],
                           comment='#', parse_dates=['transmitDateTime'])
@@ -48,7 +48,6 @@ def layout():
         html.Br(),
 
         dcc.Graph(id='trendline-graph'),
-        html.Button('Update Map Data from CSV', id='update-button', n_clicks=0),
     ])
 
 def update_graph(selectedPollutants, selectedSensor):

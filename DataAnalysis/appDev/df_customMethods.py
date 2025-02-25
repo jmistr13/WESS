@@ -3,6 +3,11 @@ import pandas as pd
 import numpy as np
 import os
 
+# function to send csv string to other programs.
+# Replace string with desired csv path
+def csv_path():
+    return 'DataAnalysis/appDev/data2.csv'
+
 def loadAndProcessData(filename):
     this_df = pd.read_csv(filename, usecols=['sensorName', 'lat', 'long', 'transmitDateTime', 'CO', 'NH3', 'NO2', 'TDS', 'turbidity'],
                           comment='#', parse_dates=['transmitDateTime'])  # <-- Ensure datetime parsing
