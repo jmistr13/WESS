@@ -8,50 +8,27 @@ import plotly.express as px
 
 from df_customMethods import * #import all custom methods for data frames
 
-dash.register_page(__name__)
+def layout():
+    return html.Div([
+        html.Div([
+            html.H2('Pollutant to Display'), #text above checklist
 
-layout = html.Div([
-    html.H1('WESS Map Data with Time Series'), # Page Title
+            dcc.RadioItems(options=[
+                {'label':'CO', 'value':'CO'},
+                {'label':'NH3', 'value':'NH3'},
+                {'label':'NO2', 'value':'NO2'},
+                {'label':'TDS', 'value':'TDS'},
+                {'label':'Turbidity', 'value':'turbidity'}],
+                value='CO', #default selected
+                labelStyle={"display": "inline-flex", "align-items": "left", "margin-right": "15px","accent-color": "#20A4F3"}, #style options
+                id='data-select')
+            ], style={"flex": "1",'align-items':'center',"text-align":"center","padding-right":'0%'}),
 
-    #checklist for data to display
-    dcc.Checklist([
-        {
-            "label": html.Div(['CO'], style={'color': 'firebrick', 'font-size': 14}),
-            "value": "CO",
-        },
-        {
-            "label": html.Div(['NH3'], style={'color': 'chocolate', 'font-size': 14}),
-            "value": "NH3",
-        },
-        {
-            "label": html.Div(['NO2'], style={'color': 'gold', 'font-size': 14}),
-            "value": "NO2",
-        },
-        {
-            "label": html.Div(['TDS'], style={'color': 'limegreen', 'font-size': 14}),
-            "value": "TDS",
-        },
-        {
-            "label": html.Div(['Turbidity'], style={'color': 'darkcyan', 'font-size': 14}),
-            "value": "Turbidity",
-        },
-    ], 
-    value=['CO','NH3','NO2','TDS','Turbidity'],
-    labelStyle={"display": "flex", "align-items": "center"},
-    inline=True,
-    id='data-select'
-    ), #end checklist
+        html.Br(), #break
 
-    html.Br(), #break
-
-    #Component to display map
-    dcc.Graph(id='sensor-map')
-])
-
-@callback(
-    Output('sensor-map', 'figure'),
-    Input('data-select', 'value')
-)
+        #Component to display map
+        dcc.Graph(id='sensor-map')
+    ])
 
 #generates map based on changes for checked data
 def update_map(selected_values):
@@ -63,13 +40,7 @@ def update_map(selected_values):
         lat='lat',
         lon='lon',
         hover_name='sensorName', #name of sensor
-        hover_data={ #by default all values are displayed
-            'CO':True,
-            'NH3':True,
-            'NO2':True,
-            'TDS':True,
-            'turbidity':True
-        },
+        hover_data=selected_values,
         center=dict(lat=df_recent['lat'].mean(), lon=df_recent['long'].mean()), # Places center of map at average lat and long
         zoom=14, # Arbitrary value, default zoom value for map 
         map_style='outdoors'
@@ -95,6 +66,12 @@ def update_map(selected_values):
     fig.update_layout()
 
     return fig
+
+def register_callbacks(wessApp):
+    wessApp.callback(
+        Output('sensor-map', 'figure'),
+        Input('data-select', 'value')
+    )(update_map)
 
 def loadAndProcessData():
     df = pd.read_csv('data2.csv', usecols=['sensorName', 'lat', 'long', 'transmitDateTime', 'CO', 'NH3', 'NO2', 'TDS', 'turbidity'],
