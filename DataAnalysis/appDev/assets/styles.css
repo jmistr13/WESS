@@ -1,0 +1,59 @@
+/* style for wessApp */
+
+/* text styles */
+body {
+    background-color: #272838;
+    font-family: Tahoma;
+    color: #D8D0C1;
+    size: 20;
+    padding-right: 12px;
+}
+
+h1 {
+    font-family: Verdana;
+    color: #009B72;
+    size: 24;
+    margin-top: 6px;
+    margin-bottom: 12px;
+    margin-right: 15px;
+}
+
+h2 {
+    font-family: Tahoma;
+    color: #f2f4ff;
+    size: 12;
+    padding-left: 6;
+    margin-top: 6px;
+    margin-bottom: 6px;
+}
+
+.custom-tabs {
+    background-color: #3B3C54; 
+}
+
+.custom-tab {
+    color:#D8D0C1;
+    border-top: 3px solid transparent !important;
+    border-left: 0px !important;
+    border-right: 0px !important;
+    border-bottom: 0px !important;
+    background-color: #3B3C54 !important;
+    padding: 12px !important;
+    font-family: "system-ui";
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+.custom-tab--selected {
+    color: #009B72 !important;
+    background-color: #f2f4ff !important;
+    font-weight: bold;
+    border-top: 6px solid #009B72 !important;
+}
+
+.custom-dropdowns {
+    background-color: #f2f4ff;
+}
+.custom-dropdown {
+    color: #272838,
+}

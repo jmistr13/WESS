@@ -1,0 +1,9 @@
+# HOW TO USE
+wessApp.py is the main file. The only thing you may want to change is the filepath for the csv
+
+As of 2/25/25, it is set to the local data2.csv file in this directory.
+
+Once you are satified with your filepath, run wessApp.py and navigate to the link produced in the terminal.
+
+
+Collection of python files to build Dash interface
