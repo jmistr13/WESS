@@ -27,7 +27,7 @@ def layout():
     return html.Div([
         dcc.Graph(id='sensor-map'),
 
-        #update map content
+        #update map content periodically 
         dcc.Interval(
             id='interval-component',
             interval=5000, # in milliseconds

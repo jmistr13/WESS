@@ -11,6 +11,8 @@ filename = csv_path()
 
 df = pd.read_csv(filename, usecols=['sensorName', 'lat', 'long', 'transmitDateTime', 'CO', 'NH3', 'NO2', 'TDS', 'turbidity'],
                           comment='#', parse_dates=['transmitDateTime'])
+last_modified_time = get_csv_modified_time(filename) # make sure csv stays up to date
+
 #print(df)
 # Colors for trendline plot
 pollutant_colors = {
@@ -48,9 +50,24 @@ def layout():
         html.Br(),
 
         dcc.Graph(id='trendline-graph'),
+
+        #update graph content periodically
+        dcc.Interval(
+            id='interval-component',
+            interval=5000, # in milliseconds
+            n_intervals=0
+        ),
     ])
 
-def update_graph(selectedPollutants, selectedSensor):
+def update_graph(selectedPollutants, selectedSensor, n_intervals):
+    global df, last_modified_time
+
+    # Check if the CSV file has been modified
+    current_modified_time = get_csv_modified_time(filename)
+    if current_modified_time > last_modified_time:
+        df = loadAndProcessData(filename)  # Reload the data
+        last_modified_time = current_modified_time  # Update the last known modification time
+
     dfThis = df[df['sensorName'] == selectedSensor].copy()  # Filter by selected sensor
     
     # Ensure 'transmitDateTime' is in datetime format
@@ -102,5 +119,6 @@ def register_callbacks(wessApp):
     wessApp.callback(
         Output('trendline-graph', 'figure'), # graph
         Input('data-select', 'value'), # check
-        Input('sensor-select', 'value') # radio
+        Input('sensor-select', 'value'), # radio
+        Input('interval-component', 'n_intervals')  # time refresh
     )(update_graph)
