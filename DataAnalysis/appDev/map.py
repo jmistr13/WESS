@@ -7,8 +7,9 @@ from dash import html, dcc, callback, Input, Output
 import plotly.express as px
 
 from df_customMethods import * #import all custom methods for data frames
+from wessApp import csv_path
 
-filename = 'DataAnalysis/appDev/data2.csv'
+filename = csv_path()
 df = loadAndProcessData(filename)
 
 last_modified_time = get_csv_modified_time(filename) # make sure csv stays up to date

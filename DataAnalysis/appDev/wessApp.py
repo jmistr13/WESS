@@ -7,6 +7,11 @@ import plotly.express as px
 from df_customMethods import *
 import map, trendlines, connections
 
+# function to send csv string to other programs.
+# Replace string with desired csv path
+def csv_path():
+    return 'DataAnalysis/appDev/data2.csv'
+
 wessApp = Dash(__name__, use_pages=False, suppress_callback_exceptions=True)
 wessApp.layout = html.Div([
     html.H1('Wireless Environmental Sensor System'),
