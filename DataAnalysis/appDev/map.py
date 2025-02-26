@@ -25,6 +25,25 @@ pollutant_ranges = {
 
 def layout():
     return html.Div([
+        html.Div([
+            html.Div([
+                html.H2('Select Pollutant to View'), #text above selector
+                dcc.Dropdown(options=[
+                    {'label':'CO', 'value':'CO'},
+                    {'label':'NH3', 'value':'NH3'},
+                    {'label':'NO2', 'value':'NO2'},
+                    {'label':'TDS', 'value':'TDS'},
+                    {'label':'Turbidity', 'value':'turbidity'}],
+                    value='CO',
+                    id='data-select',
+                    className='custom-dropdowns',
+                )
+            ], style={"flex": "1",'align-items':'center',"text-align":"center",'padding-left':'3%'}),
+            html.Div([
+                html.H2(id='graph-title',
+                        style={'size':36,'align':'center'})
+            ], style={"flex": "3",'align-items':'center',"text-align":"left",'padding-left':'15%'}),
+        ], style={"display": "flex", "gap": "20px", 'align-items':'center'}),
         dcc.Graph(id='sensor-map'),
 
         #update map content periodically 
@@ -33,18 +52,6 @@ def layout():
             interval=5000, # in milliseconds
             n_intervals=0
         ),
-
-        dcc.Dropdown(options=[
-            {'label':'CO', 'value':'CO'},
-            {'label':'NH3', 'value':'NH3'},
-            {'label':'NO2', 'value':'NO2'},
-            {'label':'TDS', 'value':'TDS'},
-            {'label':'Turbidity', 'value':'turbidity'}],
-            value='CO',
-            id='data-select',
-            className='custom-dropdowns',
-        ),
-
     ])
 
 #generates map based on changes for checked data
@@ -80,12 +87,20 @@ def update_map(selectedPollutant,n_intervals):
     )
     return fig
 
+def update_title(selectedPollutant):
+    return f'Most Recent {selectedPollutant} Readings'
+
 def register_callbacks(wessApp):
-    # Update when selection changes
+    # Update the map when the selection changes or the CSV updates
     wessApp.callback(
         Output('sensor-map', 'figure'),
-        Input('data-select', 'value'), # user select refresh
-        Input('interval-component', 'n_intervals')  # time refresh
+        Input('data-select', 'value'),
+        Input('interval-component', 'n_intervals')  # Refreshes periodically
     )(update_map)
 
-#TODO: see if we can load map before tab to avoid loading errors
+    # Update the H2 title when the pollutant selection changes
+    wessApp.callback(
+        Output('graph-title', 'children'),  # Fix: Use 'children' instead of 'value'
+        Input('data-select', 'value')
+    )(update_title)
+
