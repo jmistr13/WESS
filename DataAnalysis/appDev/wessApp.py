@@ -44,4 +44,4 @@ map.register_callbacks(wessApp)
 trendlines.register_callbacks(wessApp)
 
 if __name__ == '__main__':
-    wessApp.run(debug=True, port=8051) #changed port b/c port in use
+    wessApp.run(host='0.0.0.0', debug=True, port=8051) #changed port b/c port in use
