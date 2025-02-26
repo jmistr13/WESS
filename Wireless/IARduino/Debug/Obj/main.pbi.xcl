@@ -1,4 +1,4 @@
-"C:\Users\stlp\Desktop\IARduino\main.c"
+"C:\Users\stlp\Documents\Github\WESS\Wireless\IARduino\main.c"
 -std=c11
 -ferror-limit=0
 -I
@@ -6,7 +6,7 @@ C:\Users\stlp\Downloads\STM32F4-Discovery_FW_V1.1.0\STM32F4-Discovery_FW_V1.1.0\
 -I
 C:\Users\stlp\Downloads\STM32F4-Discovery_FW_V1.1.0\STM32F4-Discovery_FW_V1.1.0\Libraries\CMSIS\ST\STM32F4xx\Include
 -I
-C:\Users\stlp\Desktop\IARduino
+C:\Users\stlp\Documents\Github\WESS\Wireless\IARduino
 -I
 C:\Users\stlp\Downloads\STM32F4-Discovery_FW_V1.1.0\STM32F4-Discovery_FW_V1.1.0\Libraries\STM32F4xx_StdPeriph_Driver\inc
 -I
@@ -22,7 +22,7 @@ C:\Users\stlp\Downloads\STM32F4-Discovery_FW_V1.1.0\STM32F4-Discovery_FW_V1.1.0\
 -I
 C:\Users\stlp\Downloads\STM32F4-Discovery_FW_V1.1.0\STM32F4-Discovery_FW_V1.1.0\Libraries\CMSIS\ST\STM32F4xx\Include
 -I
-C:\Users\stlp\Desktop\IARduino
+C:\Users\stlp\Documents\Github\WESS\Wireless\IARduino
 -I
 C:\Users\stlp\Downloads\STM32F4-Discovery_FW_V1.1.0\STM32F4-Discovery_FW_V1.1.0\Libraries\STM32F4xx_StdPeriph_Driver\inc
 -I
