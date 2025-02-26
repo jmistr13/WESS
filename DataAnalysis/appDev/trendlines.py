@@ -61,12 +61,14 @@ def layout():
 
 def update_graph(selectedPollutants, selectedSensor, n_intervals):
     global df, last_modified_time
-
+    df = loadAndProcessData(filename)
+    """
     # Check if the CSV file has been modified
     current_modified_time = get_csv_modified_time(filename)
     if current_modified_time > last_modified_time:
         df = loadAndProcessData(filename)  # Reload the data
         last_modified_time = current_modified_time  # Update the last known modification time
+    """
 
     dfThis = df[df['sensorName'] == selectedSensor].copy()  # Filter by selected sensor
     

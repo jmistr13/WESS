@@ -6,24 +6,24 @@ import os
 # function to send csv string to other programs.
 # Replace string with desired csv path
 def csv_path():
-    #return 'DataAnalysis/appDev/data2.csv' #for windows
-    return 'data2.csv' #for linux
+    return 'DataAnalysis/appDev/data2.csv' #for windows
+    #return 'data2.csv' #for linux
 
 def loadAndProcessData(filename):
     this_df = pd.read_csv(filename, usecols=['sensorName', 'lat', 'long', 'transmitDateTime', 'CO', 'NH3', 'NO2', 'TDS', 'turbidity'],
                           comment='#', parse_dates=['transmitDateTime'])  # <-- Ensure datetime parsing
 
-    print("Before Processing:", this_df.shape)  # Debugging
+    #print("Before Processing:", this_df.shape)  # Debugging
 
     # Check if parsing worked
     print(this_df.dtypes)  # Should show 'transmitDateTime' as datetime64[ns]
 
-    df_new = mostRecentValidLoc(this_df)  # Check if this function is filtering too much
-    print("After mostRecentValidLoc:", df_new.shape)  # Debugging
+    #df_new = mostRecentValidLoc(this_df)  # Check if this function is filtering too much
+    #print("After mostRecentValidLoc:", df_new.shape)  # Debugging
 
-    df_new.to_csv('newdata.csv', index=False)  # Save to inspect
+    #df_new.to_csv('newdata.csv', index=False)  # Save to inspect
 
-    return df_new
+    return this_df
 
 
 def updateMainDf(filename):

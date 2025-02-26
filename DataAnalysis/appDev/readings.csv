@@ -1,4 +1,4 @@
-sensorName,lat,lon,transmitDateTime,CO,NO2,NH3,TDS,turbidity
+sensorName,lat,long,transmitDateTime,CO,NO2,NH3,TDS,turbidity
 The Quad,47.6569545,-122.3078511,2/21/2025 21:30,,,,,
 The Quad,47.6569545,-122.3078511,2/21/2025 21:30,,,,,
 The Quad,47.6569545,-122.3078511,2/21/2025 21:30,,,,,
