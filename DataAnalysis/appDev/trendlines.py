@@ -30,7 +30,7 @@ def layout():
                 dcc.RadioItems(['The Quad', 'Sylvan Grove', 'Union Bay', 'Arboretum'], 'The Quad',inline=True,
                         labelStyle={"color":"D0C8CC","margin-right": "20px","accent-color": "#20A4F3"}, #styling of text
                         id='sensor-select')
-            ], style={"flex": "1",'align-items':'center',"text-align":"center","padding-left":'16%'}),
+            ], style={"flex": "1",'align-items':'center',"text-align":"center",}),
 
             html.Div([
                 html.H2('Pollutants to Display'), #text above checklist
@@ -44,7 +44,7 @@ def layout():
                     value=['CO','NH3','NO2'], #default selected
                     labelStyle={"display": "inline-flex", "align-items": "left", "margin-right": "15px","accent-color": "#20A4F3"}, #style options
                     id='data-select')
-            ], style={"flex": "1",'align-items':'center',"text-align":"center","padding-right":'16%'})
+            ], style={"flex": "1",'align-items':'center',"text-align":"center",})
             ], style={"display": "flex", "gap": "20px", 'align-items':'center'}),
 
         html.Br(),
