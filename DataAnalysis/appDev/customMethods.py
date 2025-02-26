@@ -1,6 +1,6 @@
 import subprocess
 import socket
-
+import platform
 
 # def get_wifi_name():
 #     try:
