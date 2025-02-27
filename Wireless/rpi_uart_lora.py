@@ -19,7 +19,7 @@ time.sleep(1)
 
 with open("readings.csv", 'w', newline='') as file:
 	writer = csv.writer(file)
-	writer.writerow(["transmitDateTime", "CO","NO2","NH3","TDS"])
+	writer.writerow(["sensorName","lat","long","transmitDateTime","CO","NO2","NH3","TDS","turbidity"])
 	
 	while True:
 		msg = lora.readline()
@@ -28,10 +28,13 @@ with open("readings.csv", 'w', newline='') as file:
 		
 		now = datetime.now()
 		date_time_str = now.strftime("%Y-%m-%d %H:%M:%S")
-		vals.insert(0, date_time_str)
+		vals.insert(1, date_time_str) #Insert transmitDateTime
+		vals.insert(1, "") #Insert long
+		vals.insert(1, "") #Insert lat
+
 		print(vals)
 		writer.writerow(vals)
-		file.flush()
+		file.flush() #Saves the file
 		time.sleep(5)
 
 lora.close()
