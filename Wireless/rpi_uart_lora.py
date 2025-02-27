@@ -19,25 +19,6 @@ time.sleep(1)
 
 with open("readings.csv", 'w', newline='') as file:
 	writer = csv.writer(file)
-<<<<<<< HEAD
-	writer.writerow(["sensorName","lat","long","transmitDateTime","CO","NO2","NH3","TDS","turbidity"])
-	
-	while True:
-		msg = lora.readline()
-		print(msg.decode(errors="ignore").strip())
-		vals = re.findall(r"[-+]?(?:\d*\.\d+)", msg.decode())
-		
-		now = datetime.now()
-		date_time_str = now.strftime("%Y-%m-%d %H:%M:%S")
-		vals.insert(1, date_time_str) #Insert transmitDateTime
-		vals.insert(1, "") #Insert long
-		vals.insert(1, "") #Insert lat
-
-		print(vals)
-		writer.writerow(vals)
-		file.flush() #Saves the file
-		time.sleep(5)
-=======
 	writer.writerow(["sensorName","lat","long","transmitDateTime", "CO","NO2","NH3","TDS","turbidity"])
 	
 	while True: #maybe change this to when theres an actual line to read?
@@ -60,6 +41,5 @@ with open("readings.csv", 'w', newline='') as file:
 			time.sleep(1)
 		else:
 			time.sleep(1)
->>>>>>> f0dec39 (Python code for handling +OK and +ERR messages and properly parsing into CSV)
 
 lora.close()
