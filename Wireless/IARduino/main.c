@@ -22,8 +22,8 @@
 #define V_REF 5
 #define KVALUE 1
 #define TDS_FACTOR 0.5
-#define WATER_TEMPERATURE 25                      //Assuming room temp water 25 deg C - more accurate readings can be made if we actually took water temps
-#define DATA_POINTS_PER_HOUR 5                 //Current implementation takes new samples every ~5 seconds... 3600 seconds in an hour so 3600/5 = 720 samples per hour
+#define WATER_TEMPERATURE 25                     //Assuming room temp water 25 deg C - more accurate readings can be made if we actually took water temps
+#define DATA_POINTS_PER_HOUR 720                 //Current implementation takes new samples every ~5 seconds... 3600 seconds in an hour so 3600/5 = 720 samples per hour
 #define RESISTANCE_SAMPLES 100
 
 //Global variables to store current gas reading data (these may change after each ADC reading)
