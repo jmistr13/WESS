@@ -11,20 +11,19 @@
 #include <string.h>
 #include <math.h>
 
-// Max ADC resolution is 4096 (12-bit)
-#define MAX_DIGITS 4
-#define NUM_READINGS 3
-#define NUM_GASES 3
-#define NUM_PERIPHERALS 4
-#define MAX_CHARS 240
-#define SECONDS 5
-#define ADC_RANGE 4096
-#define V_REF 5
-#define KVALUE 1
-#define TDS_FACTOR 0.5
-#define WATER_TEMPERATURE 25                     //Assuming room temp water 25 deg C - more accurate readings can be made if we actually took water temps
-#define DATA_POINTS_PER_HOUR 720                 //Current implementation takes new samples every ~5 seconds... 3600 seconds in an hour so 3600/5 = 720 samples per hour
-#define RESISTANCE_SAMPLES 100
+#define ADC_RANGE               4096    // Max ADC resolution is 4096 (12-bit)
+#define DATA_POINTS_PER_HOUR    720     // Current implementation takes new samples every ~5 seconds... 3600 seconds in an hour so 3600/5 = 720 samples per hour
+#define KVALUE                  1       // Assuming room temp water 25 deg C - more accurate readings can be made if we actually took water temps
+#define MAX_CHARS               240     // Max length of char payload from RYLR998
+#define MAX_DIGITS              4       // Number of ADC digits
+#define NUM_GASES               3       // Number of gases
+#define NUM_PERIPHERALS         5       // Total number of measurement peripherals
+#define NUM_READINGS            3       // Number of readings to take from each gas
+#define RESISTANCE_SAMPLES      100     // Number of samples to take for calculating base resistance
+#define SECONDS                 5       // Number of seconds
+#define TDS_FACTOR              0.5f    // TDS factor
+#define V_REF                   5       // Reference voltage (5V)
+#define WATER_TEMPERATURE       25      // Water in degrees Celsius at room temperature
 
 //Global variables to store current gas reading data (these may change after each ADC reading)
 float ec25_val;
@@ -55,7 +54,7 @@ typedef enum peripheral peripheral_t;
 /* Configure clocks for USART3 (DO NOT use USART1, it has a capacitor which
    garbles the output), Port C, Port B, and ADC1.
 */
-void configure_rcc(void) {
+void configure_RCC(void) {
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);      // Init USART3 clock
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);       // Init GPIOC clock
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);       // Init GPIOB clock
@@ -67,7 +66,7 @@ void configure_rcc(void) {
 
 /* Configure GPIO pins 10 and 11 for Port C and pin 1 for Port B
 */
-void configure_gpio(void) {
+void configure_GPIO(void) {
     GPIO_InitTypeDef GPIO_InitStruct;
     
     GPIO_InitStruct.GPIO_Pin = GPIO_Pin_10 | GPIO_Pin_11;               // Pin PC10, connect to RX of RYLR998
@@ -93,7 +92,7 @@ void configure_gpio(void) {
 
 /* Send a string char by char over USART3 until a null terminator is reached
 */
-void USART_SendString(const char* str) {
+void USART_send_string(const char* str) {
     while (*str) {
         while (USART_GetFlagStatus(USART3, USART_FLAG_TXE) == RESET);
         USART_SendData(USART3, *str++);
@@ -111,21 +110,21 @@ void delay_ms(uint32_t ms) {
 /* Send a string char by char over USART3 until a null terminator is reached,
    then append with "\r\n"
 */
-void USART_SendStringWithNewLine(const char* str) {
-  USART_SendString(str);
-  USART_SendString("\r\n");
+void USART_send_string_with_new_line(const char* str) {
+    USART_send_string(str);
+    USART_send_string("\r\n");
 }
 
 /* Send AT+ command to RYLR998 module using the above string sending functions
 */
-void USART_SendATCommand(const char* comm) {
-  USART_SendString("AT+");
-  USART_SendStringWithNewLine(comm);
+void USART_send_AT_command(const char* comm) {
+    USART_send_string("AT+");
+    USART_send_string_with_new_line(comm);
 }
 
 /* Configure ADC1 on Port A for reading from analogue gas sensor
 */
-void configure_adc(void) {
+void configure_ADC(void) {
     ADC_InitTypeDef ADC_InitStruct;
     ADC_InitStruct.ADC_Resolution = ADC_Resolution_12b;
     ADC_InitStruct.ADC_ContinuousConvMode = DISABLE;
@@ -151,7 +150,7 @@ void configure_adc(void) {
 
 /* Configure USART3 on PC10 and PC11 for UART communication with RYLR998
 */
-void configure_usart3(void) {
+void configure_USART3(void) {
     USART_InitTypeDef USART_InitStruct;
     
     USART_InitStruct.USART_BaudRate = 115200;
@@ -164,9 +163,9 @@ void configure_usart3(void) {
     USART_Cmd(USART3, ENABLE);
 }
 
-uint16_t getResistance(peripheral_t p) {
+uint16_t get_resistance(peripheral_t p) {
     if (p > NO2) {
-        return (uint16_t) 0;
+        return 0;
     }
     unsigned long rs = 0;
     
@@ -175,12 +174,12 @@ uint16_t getResistance(peripheral_t p) {
          delay_ms(2);
     }
 
-    return rs / RESISTANCE_SAMPLES;
+    return (uint16_t) (rs / RESISTANCE_SAMPLES);
 }
 
 /* Read analogue data from ADC1 and convert to 16-bit unsigned integer
 */
-void Read_Gas_ADC(void) {
+void read_gas_ADC(void) {
     //Each sensor reading gives a RAW ADC conversion value between 0 and 4095 
     //Each reading is normalized to this scale and linearly transformed to match the 
     //Reading range that is compatible with the MICS6814 gas sensor for each gas concentration
@@ -198,7 +197,7 @@ void Read_Gas_ADC(void) {
     ADC_ClearFlag(ADC1, ADC_FLAG_EOC);                            // Clear the EOC flag for the next channel
 }
 
-void Read_Water_ADC(void) {
+void read_water_ADC(void) {
     ADC_SoftwareStartConv(ADC2);
     
     while (ADC_GetFlagStatus(ADC2, ADC_FLAG_EOC) == RESET);
@@ -212,19 +211,19 @@ void Read_Water_ADC(void) {
 
 uint16_t calibrate_resistance(peripheral_t p) {
     if (p > NO2) {
-        return (uint16_t) 0;
+        return 0;
     }
     
     unsigned long rs = 0;
     
     for (int i = 0; i < NUM_READINGS; i++) {
         //Read new ADC data each time
-        Read_Gas_ADC();
+        read_gas_ADC();
         delay_ms(1);
         rs += gas_readings[p]; // miiight need to update code if we put in more enums so array overflows don't happen
     }
     
-    return (uint16_t) rs / NUM_READINGS;
+    return (uint16_t) (rs / NUM_READINGS);
 }
 
 void calibrate_MICS() {
@@ -284,15 +283,15 @@ void calibrate_MICS() {
     }
 }
 
-float getCurrentRatio(peripheral_t p) {
+float get_current_ratio(peripheral_t p) {
     if (p > NO2) {
         return (float) 0.0;
     }
     
-    float baseResistance = (float) base_resistances[p];
-    float resistance = (float) getResistance(p);
+    float base_resistance = (float) base_resistances[p];
+    float resistance = (float) get_resistance(p);
 
-    return resistance / baseResistance * ((float) (ADC_RANGE - 1) - baseResistance) / ((float) (ADC_RANGE - 1)  - resistance);
+    return resistance / base_resistance * ((float) (ADC_RANGE - 1) - base_resistance) / ((float) (ADC_RANGE - 1)  - resistance);
 }
 
 float measure_MICS(peripheral_t p) {
@@ -301,15 +300,15 @@ float measure_MICS(peripheral_t p) {
 
     switch (p) {
         case CO:
-            ratio = getCurrentRatio(CO);
+            ratio = get_current_ratio(CO);
             c = pow(ratio, -1.179) * 4.385;
             break;
         case NH3:
-            ratio = getCurrentRatio(NH3);
+            ratio = get_current_ratio(NH3);
             c = pow(ratio, -1.67) / 1.47;
             break;
         case NO2:
-            ratio = getCurrentRatio(NO2);
+            ratio = get_current_ratio(NO2);
             c = pow(ratio, 1.007) / 6.855;
             break;
         default:
@@ -327,9 +326,13 @@ float get_TDS() {
     return TDS_val;
 }
 
-void Average_All_Data(){
+float get_TURB() {
+    return water_readings[TURB - NUM_GASES] * ((float) V_REF / (float) ADC_RANGE);
+}
+
+void average_all_data(){
     // WILL NEED TO CHANGE THIS FOR WHEN WE ADD TURBIDITY
-    for (peripheral_t p = CO; p < TURB; p++) {
+    for (peripheral_t p = CO; p <= TURB; p++) {
         float sum = 0;
         for (int s = 0; s < DATA_POINTS_PER_HOUR; s++) {
             sum += data_points[p][s];
@@ -340,17 +343,17 @@ void Average_All_Data(){
 
 int main() {
     __enable_irq();
-    configure_rcc();
-    configure_gpio();
-    configure_adc();
-    configure_usart3();
+    configure_RCC();
+    configure_GPIO();
+    configure_ADC();
+    configure_USART3();
 
     // initialise band, network ID, and address of connected RYLR998 module
-    USART_SendATCommand("BAND=915000000");
+    USART_send_AT_command("BAND=915000000");
     delay_ms(500);
-    USART_SendATCommand("NETWORKID=5");
+    USART_send_AT_command("NETWORKID=5");
     delay_ms(500);
-    USART_SendATCommand("ADDRESS=1");
+    USART_send_AT_command("ADDRESS=1");
     delay_ms(500);
     
     calibrate_MICS();
@@ -361,25 +364,26 @@ int main() {
     while (1) {
         if (samples_taken == DATA_POINTS_PER_HOUR){
             samples_taken = 0;                        //reset samples taken
-            Average_All_Data();                       //compute hourly averages
+            average_all_data();                       //compute hourly averages
             char hresp[MAX_CHARS] = "SEND=2,";        //send out hourly average data
-            sprintf(hourly_data, "%s,%f,%f,%f,%f,%f,%f,turbidity_val_HOURLY", sensor_name, latitude, longitude, vals[CO], vals[NH3], vals[NO2], vals[TDS]); 
+            sprintf(hourly_data, "%s,%f,%f,%f,%f,%f,%f,%f", sensor_name, latitude, longitude, hourly_averages[CO], hourly_averages[NH3], hourly_averages[NO2], hourly_averages[TDS], hourly_averages[TURB]); 
             sprintf(hn, "%u", strlen(hourly_data));
             strcat(hresp, hn);
             strcat(hresp, ",");
             strcat(hresp, hourly_data);
-            USART_SendATCommand(hresp);
+            USART_send_AT_command(hresp);
         }
 
-        Read_Gas_ADC();                                // Get new gas data 
-        Read_Water_ADC();                              // Get new water data
+        read_gas_ADC();                                // Get new gas data 
+        read_water_ADC();                              // Get new water data
         
         for (peripheral_t p = CO; p < TDS; p++) {
             vals[p] = measure_MICS(p);
         }
         vals[TDS] = get_TDS();                         // Update current TDS val
+        vals[TURB] = get_TURB();
         
-        for (peripheral_t p = CO; p < TURB; p++) {
+        for (peripheral_t p = CO; p <= TURB; p++) {
             data_points[p][samples_taken] = vals[p];
         }
         
