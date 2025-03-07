@@ -15,18 +15,18 @@ import pandas as pd
 #from DataAnalysis.data_displays.plotly_display import sensor_data, latitudes, longitudes
 
 def loadAndProcessData():
-    df = pd.read_csv('data2.csv', usecols=['sensorName', 'lat', 'long', 'transmitDateTime', 'CO', 'NH3', 'NO2', 'TDS', 'turbidity'],
+    df = pd.read_csv('readings.csv', usecols=['sensorName', 'lat', 'long', 'transmitDateTime', 'CO', 'NH3', 'NO2', 'TDS', 'turbidity'],
                      comment='#') #data2 is a larger one I had chatGPT make
     df_new = mostRecentValidLoc(df) #TODO: Consider making a mode or swtich that changes which custom method we use?
     df_new = df_new.fillna('') #Filling nan with empty string,
     df_new.to_csv('newdata.csv', index=True)
     return df_new
 
-df = pd.read_csv('data2.csv', usecols=['sensorName', 'lat', 'long', 'transmitDateTime', 'CO', 'NH3', 'NO2', 'TDS', 'turbidity'],
+df = pd.read_csv('readings.csv', usecols=['sensorName', 'lat', 'long', 'transmitDateTime', 'CO', 'NH3', 'NO2', 'TDS', 'turbidity'],
                      comment='#')
 def updateMainDf():
     global df
-    df = pd.read_csv('data2.csv', usecols=['sensorName', 'lat', 'long', 'transmitDateTime', 'CO', 'NH3', 'NO2', 'TDS', 'turbidity'],
+    df = pd.read_csv('readings.csv', usecols=['sensorName', 'lat', 'long', 'transmitDateTime', 'CO', 'NH3', 'NO2', 'TDS', 'turbidity'],
                      comment='#')
 
 df_recent = loadAndProcessData()
@@ -35,11 +35,11 @@ print(df_recent)
 #TODO: Define healthy ranges for each pollutant, needed for coloring on the map
 pollutant_ranges = {
     'test': [5, 6.7],
-    'CO': [4.2, 4.5],
-    'NH3': [0, 1],
-    'NO2': [0, 0.5],
-    'TDS': [0, 1],
-    'turbidity': [0, 1]
+    'CO': [0, 50],
+    'NH3': [0, 50],
+    'NO2': [0, 3],
+    'TDS': [0, 500],
+    'turbidity': [0, 10]
 }
 
 # Create a Dash app
