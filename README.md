@@ -10,7 +10,7 @@ Joshua Collier
 Zane Hernke
 
 ## Wireless Transmission
-Andrew Garzone
+Andrew Garzon
 
 Nahum Cortezzo
 
