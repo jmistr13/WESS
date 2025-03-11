@@ -46,5 +46,5 @@ void loop() {
   Serial1.println(transmission);
   Serial.println("Values sent");
 
-  delay(3600000); // Delay to make the output readable
+  delay(1800000); // Delay to make the output readable
 }
