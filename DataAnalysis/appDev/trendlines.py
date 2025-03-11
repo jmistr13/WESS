@@ -9,13 +9,6 @@ from df_customMethods import *
 
 filename = csv_path()
 
-'''
-# Initial data frame load
-df = pd.read_csv(filename, usecols=['sensorName', 'lat', 'long', 'transmitDateTime', 'CO', 'NH3', 'NO2', 'TDS', 'turbidity'],
-                          comment='#', parse_dates=['transmitDateTime'])
-df.tail(10) #maximum number of data points to be displayed on trendline
-             #if number of rows in csv is less than this value, all rows will be displayed.
-'''
 df = loadAndProcessData(filename)
 sensor_names=df['sensorName'].unique() # pull names of sensors in csv
 pollutant_names = ['CO','NH3','NO2','TDS','turbidity']
@@ -33,13 +26,15 @@ pollutant_colors = {
 def layout():
     return html.Div([ #HTML that defines the Graph page
         html.Div([
-            html.H2('Select a Sensor',style={'text-align':'center'}), #text above selector
-
             html.Div([
-                dcc.RadioItems(sensor_names,sensor_names[0],inline=True,
-                    labelStyle={"color":"D0C8CC","margin-right": "20px","accent-color": "#20A4F3"}, #styling of text
-                    id='sensor-select')
-            ], style={'align-items':'center', 'text-align':'center'})]),
+                html.H2('Select a Sensor:',style={'flex': '1','text-align':'right','align-items':'right'}), #text for selector
+
+                html.Div([
+                    dcc.RadioItems(sensor_names,sensor_names[0],inline=True,
+                        labelStyle={"color":"D0C8CC","margin-right": "20px","accent-color": "#20A4F3"}, #styling of text
+                        id='sensor-select')
+                ], style={'flex': '1','text-align':'left','margin-left':'20px'})
+            ], style={'display': 'flex','align-items':'center', 'text-align':'center','margin-right':'15%'})]),
 
         html.P('Toggle displayed pollutants by clicking on it in the legend. Double click to isolate pollutant.',
                style={"text-align":"center",'align-items':'center','color':'#f2f4ff'}),
@@ -107,7 +102,6 @@ def update_graph(selectedSensor, n_intervals):
 def register_callbacks(wessApp):
     wessApp.callback(
         Output('trendline-graph', 'figure'), # graph
-        #Input('data-select', 'value'), # check
         Input('sensor-select', 'value'), # radio
         Input('interval-component', 'n_intervals')  # time refresh
     )(update_graph)

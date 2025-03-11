@@ -13,6 +13,7 @@ df = loadAndProcessData(filename)
 
 last_modified_time = get_csv_modified_time(filename) # make sure csv stays up to date
 
+pollutant_names = ['CO','NH3','NO2','TDS','turbidity']
 # Ranges for pollutants for cmap
 pollutant_ranges = {
     # Values in PPM
@@ -58,6 +59,7 @@ def layout():
 def update_map(selectedPollutant,n_intervals):
     global df, last_modified_time
 
+    display_index =pollutant_names.index(selectedPollutant)
     # Check if the CSV file has been modified
     current_modified_time = get_csv_modified_time(filename)
     if current_modified_time > last_modified_time:
@@ -78,16 +80,7 @@ def update_map(selectedPollutant,n_intervals):
         hover_name='sensorName',
         map_style='carto-positron',
         #mapbox_style='none',
-        hover_data={
-            'lat':False,
-            'long':False,
-            'transmitDateTime':True,
-            'CO':True,
-            'NH3':True,
-            'NO2':True,
-            'TDS':True,
-            'turbidity':True
-        },
+        hover_data={p: (p == selectedPollutant) for p in pollutant_names},
         custom_data=df[['transmitDateTime','CO','NH3','NO2','TDS','turbidity']]
         #dict(lat=False, long=False, transmitDateTime=True, CO=True, NH3=True, NO2=True, TDS=True, turbidity=True) #False removes from hover, true keeps it in
         #TODO: Figure out how to hide "size" in the hover data
@@ -98,14 +91,12 @@ def update_map(selectedPollutant,n_intervals):
         bgcolor="#272838"),
     )
     fig.update_traces(
-    hovertemplate="<b>%{hovertext}</b><br>" +
-                  "<br>Timestamp: %{customdata[0]}<br>" +
-                  "CO: %{customdata[1]:.2f} ppm<br>" +
-                  "NH3: %{customdata[2]:.2f} ppm<br>" +
-                  "NO2: %{customdata[3]:.2f} ppm<br>" +
-                  "TDS: %{customdata[4]:.2f} ppm<br>" +
-                  "Turbidity: %{customdata[5]:.2f} ppm<br><extra></extra>"
-)
+    hovertemplate="<b>%{hovertext}</b><br>"
+                  "<br>Timestamp: %{customdata[0]}<br>"
+                 f"{selectedPollutant}: %{{customdata[{display_index + 1}]:.2f}} ppm<br>"
+                  "<extra></extra>"
+    )
+
 
     return fig
 
