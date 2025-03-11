@@ -27,7 +27,7 @@ def layout():
     return html.Div([ #HTML that defines the Graph page
         html.Div([html.Div([
             html.H2('Select a Sensor'), #text above selector
-                dcc.RadioItems(['The Quad', 'Sylvan Grove', 'Union Bay', 'Arboretum'], 'The Quad',inline=True,
+                dcc.RadioItems(['The Quad', 'Sylvan Grove', 'Union Bay', 'Arboretum'], 'The Quad',inline=True, #TODO: Remove hardcoding of sensor names, make it read from the dataframe instead
                         labelStyle={"color":"D0C8CC","margin-right": "20px","accent-color": "#20A4F3"}, #styling of text
                         id='sensor-select')
             ], style={"flex": "1",'align-items':'center',"text-align":"center",}),
