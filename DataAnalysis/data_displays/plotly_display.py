@@ -2,6 +2,7 @@
 
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
+import panel as pn
 
 # Define coordinates and sensor data
 coordinates = [
@@ -43,5 +44,5 @@ fig.update_layout(
 )
 
 # Show the map
-plt.savefig('washington_state_map.png', dpi=300)
-fig.show()
+#plt.savefig('washington_state_map.png', dpi=300)
+#fig.show()
