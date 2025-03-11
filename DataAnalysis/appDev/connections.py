@@ -72,6 +72,7 @@ def register_callbacks(wessApp):
     def generate_download(n_clicks): #TODO: Figure out how to make this formatted like the other tab pages, just put (generate_download) here and have the def somewhere else
         if n_clicks is None:
             return no_update  # Prevents download if the button hasn't been clicked
+        print(filename)
 
         # Generate a filename with the current date and time
         current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
