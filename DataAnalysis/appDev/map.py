@@ -101,7 +101,7 @@ def update_map(selectedPollutant,n_intervals):
     return fig
 
 def update_title(selectedPollutant):
-    return f'Most Recent {selectedPollutant} Readings'
+    return f'Most Recent {selectedPollutant} Readings (PPM)'
 
 def register_callbacks(wessApp):
     # Update the map when the selection changes or the CSV updates

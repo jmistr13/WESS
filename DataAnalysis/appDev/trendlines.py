@@ -64,6 +64,9 @@ def update_graph(selectedSensor, n_intervals):
     # Sort data by datetime to ensure correct time series plotting
     dfThis = dfThis.sort_values(by='transmitDateTimeFormatted')
 
+    # Keep only latest 50 values
+    dfThis = dfThis.tail(50)
+
     # Ensure we have multiple timestamps
     if dfThis['transmitDateTimeFormatted'].nunique() <= 1:
         print("Warning: Only one unique timestamp found for", selectedSensor)
@@ -79,7 +82,7 @@ def update_graph(selectedSensor, n_intervals):
                 mode='lines+markers',
                 marker=dict(color=pollutant_colors[pollutant], size=6,symbol='circle'), # marker on graph
                 name=pollutant,
-                hovertemplate=f'{pollutant}: '+'%{y}<br>Timestamp: %{x|%H:%M}<extra></extra>' # hovertext display
+                hovertemplate=f'{pollutant}: '+'%{y}<br>Time: %{x|%H:%M}<extra></extra>' # hovertext display
             )
     
     # Update layout

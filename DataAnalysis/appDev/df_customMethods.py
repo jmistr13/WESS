@@ -6,14 +6,12 @@ import os
 # function to send csv string to other programs.
 # Replace string with desired csv path
 def csv_path():
-    #return 'DataAnalysis/appDev/data2.csv' #for windows
-    return 'data2.csv' #for linux
+    return 'DataAnalysis/appDev/data2.csv' #for windows
+    #return 'data2.csv' #for linux
 
 def loadAndProcessData(filename):
     this_df = pd.read_csv(filename, usecols=['sensorName', 'lat', 'long', 'transmitDateTime', 'CO', 'NH3', 'NO2', 'TDS', 'turbidity'],
                           comment='#', parse_dates=['transmitDateTime'],)  # <-- Ensure datetime parsing
-    this_df.tail(10) #maximum number of data points to be displayed on trendline
-             #if number of rows in csv is less than this value, all rows will be displayed.
     #print("Before Processing:", this_df.shape)  # Debugging
 
     # Check if parsing worked
