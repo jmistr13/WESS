@@ -12,28 +12,41 @@
 #include <math.h>
 
 #define ADC_RANGE               4096    // Max ADC resolution is 4096 (12-bit)
-#define DATA_POINTS_PER_HOUR    720     // Current implementation takes new samples every ~5 seconds... 3600 seconds in an hour so 3600/5 = 720 samples per hour
+#define ADDRESS                 "1"
+#define BAND                    "915000000"
+#define BAUD_RATE               115200
+#define CO_FACTOR               4.385
+#define CO_POWER               -1.179
+#define DATA_POINTS_PER_HOUR    5     // Current implementation takes new samples every ~5 seconds... 3600 seconds in an hour so 3600/5 = 720 samples per hour
+#define EC_VAL_1ST_PWR_FACTOR   857.39
+#define EC_VAL_2ND_PWR_FACTOR   255.86
+#define EC_VAL_3RD_PWR_FACTOR   133.42
 #define KVALUE                  1       // Assuming room temp water 25 deg C - more accurate readings can be made if we actually took water temps
+#define LATITUDE                47.653132
+#define LONGITUDE              -122.306114
 #define MAX_CHARS               240     // Max length of char payload from RYLR998
 #define MAX_DIGITS              4       // Number of ADC digits
+#define NETWORK_ID              "5"
+#define NH3_FACTOR              1.47
+#define NH3_POWER              -1.67
+#define NO2_FACTOR              6.855
+#define NO2_POWER               1.007
 #define NUM_GASES               3       // Number of gases
 #define NUM_PERIPHERALS         5       // Total number of measurement peripherals
 #define NUM_READINGS            3       // Number of readings to take from each gas
 #define RESISTANCE_SAMPLES      100     // Number of samples to take for calculating base resistance
 #define SECONDS                 5       // Number of seconds
-#define TDS_FACTOR              0.5f    // TDS factor
+#define SENSOR_NAME             "prototype"
+#define TDS_FACTOR              0.5     // TDS factor
 #define V_REF                   5       // Reference voltage (5V)
 #define WATER_TEMPERATURE       25      // Water in degrees Celsius at room temperature
 
-//Global variables to store current gas reading data (these may change after each ADC reading)
+// Global variables to store current gas reading data (these may change after each ADC reading)
 float ec25_val;
 float ec_val;
 float PC4_Voltage;
 
-char* sensor_name = "prototype";
-float latitude  = 47.653132;
-float longitude = -122.306114;
-int samples_taken = 0;                           //This keeps track of how many samples have been taken since system startup
+int samples_taken = 0;                                  // This keeps track of how many samples have been taken since system startup
 
 uint16_t base_resistances[NUM_GASES];
 
@@ -41,8 +54,8 @@ float data_points[NUM_PERIPHERALS][DATA_POINTS_PER_HOUR];
 float hourly_averages[NUM_PERIPHERALS];
 float vals[NUM_PERIPHERALS];
 
-uint16_t gas_readings[NUM_READINGS];             //Buffer of size 3 to hold CO, NH3, NO2 values
-uint16_t water_readings[NUM_READINGS-1];         //Buffer of size 2 to hold TDS and TURB values
+uint16_t gas_readings[NUM_GASES];                       // Buffer of size 3 to hold CO, NH3, NO2 values
+uint16_t water_readings[NUM_PERIPHERALS - NUM_GASES];   // Buffer of size 2 to hold TDS and TURB values
 
 // Enum for proper peripheral declaration
 enum peripheral {
@@ -128,10 +141,10 @@ void configure_ADC(void) {
     ADC_InitTypeDef ADC_InitStruct;
     ADC_InitStruct.ADC_Resolution = ADC_Resolution_12b;
     ADC_InitStruct.ADC_ContinuousConvMode = DISABLE;
-    ADC_InitStruct.ADC_ScanConvMode = ENABLE;  // Scan through channels
+    ADC_InitStruct.ADC_ScanConvMode = ENABLE;
     ADC_InitStruct.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_None;
     ADC_InitStruct.ADC_DataAlign = ADC_DataAlign_Right;
-    ADC_InitStruct.ADC_NbrOfConversion = NUM_READINGS;  // 3 channels
+    ADC_InitStruct.ADC_NbrOfConversion = NUM_READINGS;
 
     ADC_Init(ADC1, &ADC_InitStruct);
     ADC_RegularChannelConfig(ADC1, ADC_Channel_4, 1, ADC_SampleTime_15Cycles);  // Channel 4 for CO 15cycles allows for a more stable reading (should be between 1-1000)
@@ -140,12 +153,12 @@ void configure_ADC(void) {
     ADC_Cmd(ADC1, ENABLE);                                                      // Enable ADC1
     ADC_EOCOnEachRegularChannelCmd(ADC1, ENABLE);                               // Enable EOC on ADC 1 flag for each channel conversion
     
-    ADC_InitStruct.ADC_NbrOfConversion = (NUM_READINGS-1);                       // Reconfigur easy setup struct for 2 channels since we only have 2 water sensors
-    ADC_Init(ADC2, &ADC_InitStruct);                                             // Apply easy config struct to ADC 2 to set up ADC for water sensors
-    ADC_RegularChannelConfig(ADC2, ADC_Channel_14, 1, ADC_SampleTime_15Cycles);  // Channel 14 for TDS 15cycles allows for a more stable reading (should be between 1-1000)
-    ADC_RegularChannelConfig(ADC2, ADC_Channel_15, 2, ADC_SampleTime_15Cycles);  // Channel 15 for TURB 15cycles allows for a more stable reading (should be between 1-1000)
-    ADC_Cmd(ADC2 , ENABLE);                                                      // Enable ADC2
-    ADC_EOCOnEachRegularChannelCmd(ADC2, ENABLE);                                // Enable EOC flag for each channel conversion
+    ADC_InitStruct.ADC_NbrOfConversion = (NUM_READINGS - 1);                    // Reconfigure easy setup struct for 2 channels since we only have 2 water sensors
+    ADC_Init(ADC2, &ADC_InitStruct);                                            // Apply easy config struct to ADC 2 to set up ADC for water sensors
+    ADC_RegularChannelConfig(ADC2, ADC_Channel_14, 1, ADC_SampleTime_15Cycles); // Channel 14 for TDS 15cycles allows for a more stable reading (should be between 1-1000)
+    ADC_RegularChannelConfig(ADC2, ADC_Channel_15, 2, ADC_SampleTime_15Cycles); // Channel 15 for TURB 15cycles allows for a more stable reading (should be between 1-1000)
+    ADC_Cmd(ADC2 , ENABLE);                                                     // Enable ADC2
+    ADC_EOCOnEachRegularChannelCmd(ADC2, ENABLE);                               // Enable EOC flag for each channel conversion
 }
 
 /* Configure USART3 on PC10 and PC11 for UART communication with RYLR998
@@ -153,7 +166,7 @@ void configure_ADC(void) {
 void configure_USART3(void) {
     USART_InitTypeDef USART_InitStruct;
     
-    USART_InitStruct.USART_BaudRate = 115200;
+    USART_InitStruct.USART_BaudRate = BAUD_RATE;
     USART_InitStruct.USART_WordLength = USART_WordLength_8b;
     USART_InitStruct.USART_StopBits = USART_StopBits_1;
     USART_InitStruct.USART_Parity = USART_Parity_No;
@@ -185,28 +198,28 @@ void read_gas_ADC(void) {
     //Reading range that is compatible with the MICS6814 gas sensor for each gas concentration
     ADC_SoftwareStartConv(ADC1);
     while (ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) == RESET);
-    gas_readings[CO] = ADC_GetConversionValue(ADC1);             //Get RAW ADC CO reading
-    ADC_ClearFlag(ADC1, ADC_FLAG_EOC);                            // Clear the EOC flag for the next channel
+    gas_readings[CO] = ADC_GetConversionValue(ADC1);            // Get RAW ADC CO reading
+    ADC_ClearFlag(ADC1, ADC_FLAG_EOC);                          // Clear the EOC flag for the next channel
 
     while (ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) == RESET);
-    gas_readings[NH3] = ADC_GetConversionValue(ADC1);             //Get RAW ADC NH3 reading
-    ADC_ClearFlag(ADC1, ADC_FLAG_EOC);                            // Clear the EOC flag for the next channel
+    gas_readings[NH3] = ADC_GetConversionValue(ADC1);           // Get RAW ADC NH3 reading
+    ADC_ClearFlag(ADC1, ADC_FLAG_EOC);                          // Clear the EOC flag for the next channel
 
     while (ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) == RESET);
-    gas_readings[NO2] = ADC_GetConversionValue(ADC1);             //Get RAW ADC NO2 reading
-    ADC_ClearFlag(ADC1, ADC_FLAG_EOC);                            // Clear the EOC flag for the next channel
+    gas_readings[NO2] = ADC_GetConversionValue(ADC1);           // Get RAW ADC NO2 reading
+    ADC_ClearFlag(ADC1, ADC_FLAG_EOC);                          // Clear the EOC flag for the next channel
 }
 
 void read_water_ADC(void) {
     ADC_SoftwareStartConv(ADC2);
     
     while (ADC_GetFlagStatus(ADC2, ADC_FLAG_EOC) == RESET);
-    water_readings[TDS - NUM_GASES] = ADC_GetConversionValue(ADC2);             //Get RAW ADC TDS reading
-    ADC_ClearFlag(ADC2, ADC_FLAG_EOC);                            // Clear the EOC flag for the next channel
+    water_readings[TDS - NUM_GASES] = ADC_GetConversionValue(ADC2);     // Get RAW ADC TDS reading
+    ADC_ClearFlag(ADC2, ADC_FLAG_EOC);                                  // Clear the EOC flag for the next channel
 
     while (ADC_GetFlagStatus(ADC2, ADC_FLAG_EOC) == RESET);
-    water_readings[TURB - NUM_GASES] = ADC_GetConversionValue(ADC2);           //Get RAW ADC TURB reading
-    ADC_ClearFlag(ADC2, ADC_FLAG_EOC);                            // Clear the EOC flag for the next channel
+    water_readings[TURB - NUM_GASES] = ADC_GetConversionValue(ADC2);    // Get RAW ADC TURB reading
+    ADC_ClearFlag(ADC2, ADC_FLAG_EOC);                                  // Clear the EOC flag for the next channel
 }
 
 uint16_t calibrate_resistance(peripheral_t p) {
@@ -217,10 +230,9 @@ uint16_t calibrate_resistance(peripheral_t p) {
     unsigned long rs = 0;
     
     for (int i = 0; i < NUM_READINGS; i++) {
-        //Read new ADC data each time
-        read_gas_ADC();
+        read_gas_ADC();                                                 // Read new ADC data each time
         delay_ms(1);
-        rs += gas_readings[p]; // miiight need to update code if we put in more enums so array overflows don't happen
+        rs += gas_readings[p];
     }
     
     return (uint16_t) (rs / NUM_READINGS);
@@ -301,15 +313,15 @@ float measure_MICS(peripheral_t p) {
     switch (p) {
         case CO:
             ratio = get_current_ratio(CO);
-            c = pow(ratio, -1.179) * 4.385;
+            c = pow(ratio, CO_POWER) * CO_FACTOR;
             break;
         case NH3:
             ratio = get_current_ratio(NH3);
-            c = pow(ratio, -1.67) / 1.47;
+            c = pow(ratio, NH3_POWER) / NH3_FACTOR;
             break;
         case NO2:
             ratio = get_current_ratio(NO2);
-            c = pow(ratio, 1.007) / 6.855;
+            c = pow(ratio, NO2_POWER) / NO2_FACTOR;
             break;
         default:
             c = 0.0;
@@ -320,10 +332,11 @@ float measure_MICS(peripheral_t p) {
 
 float get_TDS() {
     PC4_Voltage = (water_readings[TDS - NUM_GASES] / (float) ADC_RANGE) * (float) V_REF;                 // Convert RAW ADC reading to a voltage
-    ec_val = (133.42 * pow(PC4_Voltage, 3) - 255.86 * pow(PC4_Voltage, 2) + 857.39 * PC4_Voltage) * KVALUE;
+    ec_val = (EC_VAL_3RD_PWR_FACTOR * pow(PC4_Voltage, 3)
+            - EC_VAL_2ND_PWR_FACTOR * pow(PC4_Voltage, 2)
+            + EC_VAL_1ST_PWR_FACTOR * PC4_Voltage) * KVALUE;
     ec25_val = ec_val / (1.0 + 0.02 * (WATER_TEMPERATURE - 25.0));
-    float TDS_val = ec25_val * TDS_FACTOR;
-    return TDS_val;
+    return ec25_val * TDS_FACTOR;
 }
 
 float get_TURB() {
@@ -331,7 +344,6 @@ float get_TURB() {
 }
 
 void average_all_data(){
-    // WILL NEED TO CHANGE THIS FOR WHEN WE ADD TURBIDITY
     for (peripheral_t p = CO; p <= TURB; p++) {
         float sum = 0;
         for (int s = 0; s < DATA_POINTS_PER_HOUR; s++) {
@@ -349,11 +361,19 @@ int main() {
     configure_USART3();
 
     // initialise band, network ID, and address of connected RYLR998 module
-    USART_send_AT_command("BAND=915000000");
+    char band[MAX_CHARS] = "BAND=";
+    strcat(band, BAND);
+    USART_send_AT_command(band);
     delay_ms(500);
-    USART_send_AT_command("NETWORKID=5");
+    
+    char network_id[MAX_CHARS] = "NETWORKID=";
+    strcat(network_id, NETWORK_ID);
+    USART_send_AT_command(network_id);
     delay_ms(500);
-    USART_send_AT_command("ADDRESS=1");
+    
+    char address[MAX_CHARS] = "ADDRESS=";
+    strcat(address, ADDRESS);
+    USART_send_AT_command(address);
     delay_ms(500);
     
     calibrate_MICS();
@@ -366,7 +386,7 @@ int main() {
             samples_taken = 0;                        //reset samples taken
             average_all_data();                       //compute hourly averages
             char hresp[MAX_CHARS] = "SEND=2,";        //send out hourly average data
-            sprintf(hourly_data, "%s,%f,%f,%f,%f,%f,%f,%f", sensor_name, latitude, longitude, hourly_averages[CO], hourly_averages[NH3], hourly_averages[NO2], hourly_averages[TDS], hourly_averages[TURB]); 
+            sprintf(hourly_data, "%s,%f,%f,%f,%f,%f,%f,%f", SENSOR_NAME, LATITUDE, LONGITUDE, hourly_averages[CO], hourly_averages[NH3], hourly_averages[NO2], hourly_averages[TDS], hourly_averages[TURB]); 
             sprintf(hn, "%u", strlen(hourly_data));
             strcat(hresp, hn);
             strcat(hresp, ",");

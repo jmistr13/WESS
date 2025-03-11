@@ -40,7 +40,7 @@ void loop() {
   mappedNO2Value = map(NO2Value, 0, 1023, 0, 3);
 
   String transmission = "AT+SEND=2,";
-  String payload = "CO Value: " + String(mappedCOValue) + " || NH3 Value: " + String(mappedNH3Value) + " || NO2 Value: " + String(mappedNO2Value);
+  String payload = "dummy,69.420,13.37," + String(mappedCOValue) + "," + String(mappedNH3Value) + "," + String(mappedNO2Value) + ",,";
   String l = String(payload.length()) + ",";
   transmission += l + payload;
   Serial1.println(transmission);
