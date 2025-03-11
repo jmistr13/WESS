@@ -8,9 +8,9 @@ int NO2_pin = A2;
 int NH3Value = 0;
 int COValue = 0;
 int NO2Value = 0;
-int mappedCOValue = 0;
-int mappedNH3Value = 0;
-int mappedNO2Value = 0;
+float mappedCOValue = 0.0;
+float mappedNH3Value = 0.0;
+float mappedNO2Value = 0.0;
 void setup() {
   Serial.begin(9600); // Start serial communication
   Serial1.begin(115200);
@@ -35,12 +35,12 @@ void loop() {
   NO2Value = analogRead(NO2_pin);
 
   // Map the sensor value from the range 0-1023 to 0-50
-  mappedCOValue = map(COValue, 0, 1023, 0, 15);
-  mappedNH3Value = map(NH3Value, 0, 1023, 0, 15);
-  mappedNO2Value = map(NO2Value, 0, 1023, 0, 3);
+  mappedCOValue = (float) map(COValue, 0, 1023, 0, 15);
+  mappedNH3Value = (float) map(NH3Value, 0, 1023, 0, 15);
+  mappedNO2Value = (float) map(NO2Value, 0, 1023, 0, 3);
 
   String transmission = "AT+SEND=2,";
-  String payload = "dummy,69.420,13.37," + String(mappedCOValue) + "," + String(mappedNH3Value) + "," + String(mappedNO2Value) + ",,";
+  String payload = "dummy,69.420,13.37," + String(mappedCOValue) + "," + String(mappedNH3Value) + "," + String(mappedNO2Value) + ",0.0,0.0";
   String l = String(payload.length()) + ",";
   transmission += l + payload;
   Serial1.println(transmission);
