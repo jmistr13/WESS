@@ -1,18 +1,28 @@
 /* style for wessApp */
 
+/*
+Color Hexes:
+Background:  #272838 (Raisin Black)
+Body Text:   #D8D0C1 (Bone)
+Title:       #009B72 (Shamrock Green)
+Header Text: #f2f4ff (Ghost White)
+*/
+
 /* text styles */
 body {
     background-color: #272838;
     font-family: "system-ui";
     color: #D8D0C1;
     size: 10px;
+    padding-top: 1%;
+    padding-bottom: 1%;
     padding-right: 12px;
 }
 
 h1 {
     font-family: "system-ui";;
     color: #009B72;
-    size: 24px;
+    size: 10%;
     margin-top: 6px;
     margin-bottom: 12px;
     margin-right: 15px;
@@ -21,7 +31,7 @@ h1 {
 h2 {
     font-family: Tahoma;
     color: #f2f4ff;
-    size: 12px;
+    size: 5%;
     padding-left: 6px;
     margin-top: 6px;
     margin-bottom: 6px;

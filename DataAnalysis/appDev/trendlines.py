@@ -9,9 +9,16 @@ from df_customMethods import *
 
 filename = csv_path()
 
+'''
+# Initial data frame load
 df = pd.read_csv(filename, usecols=['sensorName', 'lat', 'long', 'transmitDateTime', 'CO', 'NH3', 'NO2', 'TDS', 'turbidity'],
                           comment='#', parse_dates=['transmitDateTime'])
-last_modified_time = get_csv_modified_time(filename) # make sure csv stays up to date
+df.tail(10) #maximum number of data points to be displayed on trendline
+             #if number of rows in csv is less than this value, all rows will be displayed.
+'''
+df = loadAndProcessData(filename)
+sensor_names=df['sensorName'].unique() # pull names of sensors in csv
+pollutant_names = ['CO','NH3','NO2','TDS','turbidity']
 
 #print(df)
 # Colors for trendline plot
@@ -25,29 +32,17 @@ pollutant_colors = {
 
 def layout():
     return html.Div([ #HTML that defines the Graph page
-        html.Div([html.Div([
-            html.H2('Select a Sensor'), #text above selector
-                dcc.RadioItems(['The Quad', 'Sylvan Grove', 'Union Bay', 'Arboretum'], 'The Quad',inline=True,
-                        labelStyle={"color":"D0C8CC","margin-right": "20px","accent-color": "#20A4F3"}, #styling of text
-                        id='sensor-select')
-            ], style={"flex": "1",'align-items':'center',"text-align":"center",}),
+        html.Div([
+            html.H2('Select a Sensor',style={'text-align':'center'}), #text above selector
 
             html.Div([
-                html.H2('Pollutants to Display'), #text above checklist
+                dcc.RadioItems(sensor_names,sensor_names[0],inline=True,
+                    labelStyle={"color":"D0C8CC","margin-right": "20px","accent-color": "#20A4F3"}, #styling of text
+                    id='sensor-select')
+            ], style={'align-items':'center', 'text-align':'center'})]),
 
-                dcc.Checklist(options=[
-                    {'label':'CO', 'value':'CO'},
-                    {'label':'NH3', 'value':'NH3'},
-                    {'label':'NO2', 'value':'NO2'},
-                    {'label':'TDS', 'value':'TDS'},
-                    {'label':'Turbidity', 'value':'turbidity'}],
-                    value=['CO','NH3','NO2'], #default selected
-                    labelStyle={"display": "inline-flex", "align-items": "left", "margin-right": "15px","accent-color": "#20A4F3"}, #style options
-                    id='data-select')
-            ], style={"flex": "1",'align-items':'center',"text-align":"center",})
-            ], style={"display": "flex", "gap": "20px", 'align-items':'center'}),
-
-        html.Br(),
+        html.P('Toggle displayed pollutants by clicking on it in the legend. Double click to isolate pollutant.',
+               style={"text-align":"center",'align-items':'center','color':'#f2f4ff'}),
 
         dcc.Graph(id='trendline-graph'),
 
@@ -59,16 +54,9 @@ def layout():
         ),
     ])
 
-def update_graph(selectedPollutants, selectedSensor, n_intervals):
-    global df, last_modified_time
+def update_graph(selectedSensor, n_intervals):
+    global df
     df = loadAndProcessData(filename)
-    """
-    # Check if the CSV file has been modified
-    current_modified_time = get_csv_modified_time(filename)
-    if current_modified_time > last_modified_time:
-        df = loadAndProcessData(filename)  # Reload the data
-        last_modified_time = current_modified_time  # Update the last known modification time
-    """
 
     dfThis = df[df['sensorName'] == selectedSensor].copy()  # Filter by selected sensor
     
@@ -88,20 +76,20 @@ def update_graph(selectedPollutants, selectedSensor, n_intervals):
     fig = px.scatter() #create plot
 
     #add data to plot for each checked value
-    for pollutant in selectedPollutants:
-        if pollutant in dfThis.columns:  # Ensure the pollutant exists in the DataFrame
+    for pollutant in pollutant_names:
+        if pollutant in pollutant_names:  # Ensure the pollutant exists in the DataFrame
             fig.add_scatter(
                 x=dfThis['transmitDateTimeFormatted'],
                 y=dfThis[pollutant],
                 mode='lines+markers',
                 marker=dict(color=pollutant_colors[pollutant], size=6,symbol='circle'), # marker on graph
                 name=pollutant,
-                hovertemplate=f'{pollutant}: '+'%{y}<br>Time: %{x|%H:%M}<extra></extra>' # hovertext display
+                hovertemplate=f'{pollutant}: '+'%{y}<br>Timestamp: %{x|%H:%M}<extra></extra>' # hovertext display
             )
     
     # Update layout
     fig.update_layout(
-        hovermode='x unified', # style of hover text
+        hovermode='closest', # style of hover text
         title=f"Pollutants at {selectedSensor}", # figure title
         xaxis_title="DateTime", # x axis
         yaxis_title="Concentration (PPM)", # y axis
@@ -110,7 +98,6 @@ def update_graph(selectedPollutants, selectedSensor, n_intervals):
             orientation='h',
             x=0.5, y=1,
             xanchor='center', yanchor='bottom',
-            itemclick=False, itemdoubleclick=False, #disable clicking on legend features
         ),
         margin=dict(l=40, r=40, t=40, b=40), # space for legend
     )
@@ -120,7 +107,7 @@ def update_graph(selectedPollutants, selectedSensor, n_intervals):
 def register_callbacks(wessApp):
     wessApp.callback(
         Output('trendline-graph', 'figure'), # graph
-        Input('data-select', 'value'), # check
+        #Input('data-select', 'value'), # check
         Input('sensor-select', 'value'), # radio
         Input('interval-component', 'n_intervals')  # time refresh
     )(update_graph)

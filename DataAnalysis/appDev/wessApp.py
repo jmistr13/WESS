@@ -7,6 +7,8 @@ import plotly.express as px
 from df_customMethods import *
 import map, trendlines, connections
 
+# To change what CSV is used, update filepath in df_custom_methods.py
+
 wessApp = Dash(__name__, use_pages=False, suppress_callback_exceptions=True)
 wessApp.layout = html.Div([
     html.H1('Wireless Environmental Sensor System'),
@@ -44,4 +46,4 @@ map.register_callbacks(wessApp)
 trendlines.register_callbacks(wessApp)
 
 if __name__ == '__main__':
-    wessApp.run(host='0.0.0.0', debug=True, port=8051) #changed port b/c port in use
+    wessApp.run(debug=True, port=8051) #changed port b/c port in use

@@ -27,16 +27,16 @@ def layout():
     return html.Div([
         html.Div([
             html.Div([
-                html.H2('Select Pollutant to View'), #text above selector
                 dcc.Dropdown(options=[
                     {'label':'CO', 'value':'CO'},
                     {'label':'NH3', 'value':'NH3'},
                     {'label':'NO2', 'value':'NO2'},
                     {'label':'TDS', 'value':'TDS'},
                     {'label':'Turbidity', 'value':'turbidity'}],
-                    value='CO',
+                    value="CO",
                     id='data-select',
                     className='custom-dropdowns',
+                    style={'background-color':'#f2f4ff','color':'#272838'}
                 )
             ], style={"flex": "1",'align-items':'center',"text-align":"center",'padding-left':'3%'}),
             html.Div([
@@ -78,13 +78,35 @@ def update_map(selectedPollutant,n_intervals):
         hover_name='sensorName',
         map_style='carto-positron',
         #mapbox_style='none',
-        hover_data=dict(lat=False, long=False, transmitDateTime=True, CO=True, NH3=True, NO2=True, TDS=True, turbidity=True) #False removes from hover, true keeps it in
+        hover_data={
+            'lat':False,
+            'long':False,
+            'transmitDateTime':True,
+            'CO':True,
+            'NH3':True,
+            'NO2':True,
+            'TDS':True,
+            'turbidity':True
+        },
+        custom_data=df[['transmitDateTime','CO','NH3','NO2','TDS','turbidity']]
+        #dict(lat=False, long=False, transmitDateTime=True, CO=True, NH3=True, NO2=True, TDS=True, turbidity=True) #False removes from hover, true keeps it in
         #TODO: Figure out how to hide "size" in the hover data
     )
     
     fig.update_layout(
-        title=f"Most Recent {selectedPollutant} Reading",
+        hoverlabel=dict(
+        bgcolor="#272838"),
     )
+    fig.update_traces(
+    hovertemplate="<b>%{hovertext}</b><br>" +
+                  "<br>Timestamp: %{customdata[0]}<br>" +
+                  "CO: %{customdata[1]:.2f} ppm<br>" +
+                  "NH3: %{customdata[2]:.2f} ppm<br>" +
+                  "NO2: %{customdata[3]:.2f} ppm<br>" +
+                  "TDS: %{customdata[4]:.2f} ppm<br>" +
+                  "Turbidity: %{customdata[5]:.2f} ppm<br><extra></extra>"
+)
+
     return fig
 
 def update_title(selectedPollutant):
@@ -103,4 +125,3 @@ def register_callbacks(wessApp):
         Output('graph-title', 'children'),  # Fix: Use 'children' instead of 'value'
         Input('data-select', 'value')
     )(update_title)
-

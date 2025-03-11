@@ -11,12 +11,13 @@ def csv_path():
 
 def loadAndProcessData(filename):
     this_df = pd.read_csv(filename, usecols=['sensorName', 'lat', 'long', 'transmitDateTime', 'CO', 'NH3', 'NO2', 'TDS', 'turbidity'],
-                          comment='#', parse_dates=['transmitDateTime'])  # <-- Ensure datetime parsing
-
+                          comment='#', parse_dates=['transmitDateTime'],)  # <-- Ensure datetime parsing
+    this_df.tail(10) #maximum number of data points to be displayed on trendline
+             #if number of rows in csv is less than this value, all rows will be displayed.
     #print("Before Processing:", this_df.shape)  # Debugging
 
     # Check if parsing worked
-    print(this_df.dtypes)  # Should show 'transmitDateTime' as datetime64[ns]
+    #print(this_df.dtypes)  # Should show 'transmitDateTime' as datetime64[ns]
 
     #df_new = mostRecentValidLoc(this_df)  # Check if this function is filtering too much
     #print("After mostRecentValidLoc:", df_new.shape)  # Debugging
