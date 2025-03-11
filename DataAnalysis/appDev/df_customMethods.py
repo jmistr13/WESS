@@ -6,8 +6,8 @@ import os
 # function to send csv string to other programs.
 # Replace string with desired csv path
 def csv_path():
-    return 'DataAnalysis/appDev/data2.csv' #for windows
-    #return 'data2.csv' #for linux
+    #return 'DataAnalysis/appDev/data2.csv' #for windows
+    return '2025-03-11_readings.csv' #for linux
 
 def loadAndProcessData(filename):
     this_df = pd.read_csv(filename, usecols=['sensorName', 'lat', 'long', 'transmitDateTime', 'CO', 'NH3', 'NO2', 'TDS', 'turbidity'],
