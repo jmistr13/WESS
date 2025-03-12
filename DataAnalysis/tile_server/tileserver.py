@@ -7,7 +7,7 @@ CORS(app)
 
 TILE_DIR = "tiles"  # Folder with Puget Sound tiles
 
-@app.route('/DataAnalysis/tiles/<int:z>/<int:x>/<int:y>.png')
+@app.route('/tiles/<int:z>/<int:x>/<int:y>.png')
 def get_tile(z, x, y):
     tile_path = os.path.join(TILE_DIR, f"{z}/{x}/{y}.png")
     if os.path.exists(tile_path):

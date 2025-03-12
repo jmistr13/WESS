@@ -1,3 +1,3 @@
 from mbutil import *
 
-mbtiles_to_disk('Seattle.mbtiles', 'tiles')
+mbtiles_to_disk('Seattle.mbtiles', 'tile_server/tiles')
