@@ -50,8 +50,9 @@ def layout():
     ])
 
 def update_graph(selectedSensor, n_intervals):
-    global df
+    global df, sensor_names
     df = loadAndProcessData(filename)
+    sensor_names=df['sensorName'].unique()
 
     dfThis = df[df['sensorName'] == selectedSensor].copy()  # Filter by selected sensor
     
