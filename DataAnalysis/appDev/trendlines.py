@@ -82,7 +82,7 @@ def update_graph(selectedSensor, n_intervals):
                 mode='lines+markers',
                 marker=dict(color=pollutant_colors[pollutant], size=6,symbol='circle'), # marker on graph
                 name=pollutant,
-                hovertemplate=f'{pollutant}: '+'%{y}<br>Time: %{x|%H:%M}<extra></extra>' # hovertext display
+                hovertemplate=f'{pollutant}: '+'%{y}<br>Time: %{x|%H:%M:%S}<extra></extra>' # hovertext display
             )
     
     # Update layout

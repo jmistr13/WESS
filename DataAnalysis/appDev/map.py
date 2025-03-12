@@ -53,7 +53,7 @@ def layout():
         ),
 
         # Store map state
-        dcc.Store(id='map-store', data={'zoom': 1.5, 'center': {'lat': df['lat'].mean(), 'lon': df['long'].mean()}}),
+        dcc.Store(id='map-store', data={'zoom': 14, 'center': {'lat': df['lat'].mean(), 'lon': df['long'].mean()}}),
     ])
 
 #generates map based on changes for checked data
@@ -63,7 +63,7 @@ def update_map(selectedPollutant,n_intervals,stored_data):
     display_index =pollutant_names.index(selectedPollutant) # Gets index of pollutant for cmap range
 
     # Use stored zoom and center if available
-    zoom = stored_data.get('zoom', 1.5)
+    zoom = stored_data.get('zoom', 14)
     center = stored_data.get('center', {'lat': df['lat'].mean(), 'lon': df['long'].mean()})
 
     fig = px.scatter_map( # Map figure 
@@ -116,7 +116,7 @@ def register_callbacks(wessApp):
         Input('sensor-map', 'relayoutData'),
         prevent_initial_call=True  # Avoid triggering on startup
     )(lambda relayoutData: {
-        'zoom': relayoutData.get('mapbox.zoom', 1.5),
+        'zoom': relayoutData.get('mapbox.zoom', 14),
         'center': relayoutData.get('mapbox.center', {'lat': df['lat'].mean(), 'lon': df['long'].mean()})
     })
 
