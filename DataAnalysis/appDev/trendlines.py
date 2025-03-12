@@ -99,6 +99,7 @@ def update_graph(selectedSensor, n_intervals):
             xanchor='center', yanchor='bottom',
         ),
         margin=dict(l=40, r=40, t=40, b=40), # space for legend
+        height=375,
     )
     
     return fig

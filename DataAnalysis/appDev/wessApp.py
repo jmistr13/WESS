@@ -47,4 +47,4 @@ trendlines.register_callbacks(wessApp)
 connections.register_callbacks(wessApp)
 
 if __name__ == '__main__':
-    wessApp.run(host='0.0.0.0', debug=True, port=8050)
+    wessApp.run(host='0.0.0.0', debug=False, port=8050)

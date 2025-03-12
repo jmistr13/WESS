@@ -87,6 +87,7 @@ def update_map(selectedPollutant,n_intervals,stored_data):
     fig.update_layout(
         hoverlabel=dict(
         bgcolor="#272838"),
+        height=420,
     )
 
     fig.update_traces(
