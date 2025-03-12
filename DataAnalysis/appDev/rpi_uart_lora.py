@@ -15,7 +15,7 @@ def generate_new_file():
 	# Add header to csv
 	with open(filename, 'w', newline='') as file:
 		writer = csv.writer(file)
-		writer.writerow(["sensorName","lat","long","transmitDateTime", "CO","NO2","NH3","TDS","turbidity"])
+		writer.writerow(["sensorName","lat","long","transmitDateTime", "CO","NH3","N02","TDS","turbidity"])
 
 file_date = datetime.now().strftime("%Y-%m-%d")
 filename = f"{file_date}_readings.csv"
