@@ -14,8 +14,8 @@ body {
     font-family: "system-ui";
     color: #D8D0C1;
     size: 10px;
-    padding-top: 1%;
-    padding-bottom: 1%;
+    padding-top: 3px;
+    padding-bottom: 3px;
     padding-right: 12px;
 }
 
@@ -33,8 +33,8 @@ h2 {
     color: #f2f4ff;
     size: 5%;
     padding-left: 6px;
-    margin-top: 6px;
-    margin-bottom: 6px;
+    margin-top: 3px;
+    margin-bottom: 3px;
 }
 
 .custom-tabs {

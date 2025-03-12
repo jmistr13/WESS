@@ -6,7 +6,7 @@ import os
 # function to send csv string to other programs.
 # Replace string with desired csv path
 def csv_path():
-    #return 'DataAnalysis/appDev/data2.csv' #for windows
+    #return 'DataAnalysis/appDev/2025-03-11_readings.csv' #for windows
     return '2025-03-11_readings.csv' #for linux
 
 def loadAndProcessData(filename):
