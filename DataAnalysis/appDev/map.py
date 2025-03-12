@@ -59,7 +59,8 @@ def layout():
 #generates map based on changes for checked data
 def update_map(selectedPollutant,n_intervals,stored_data):
     global df
-
+    df = loadAndProcessData(filename)
+    
     display_index =pollutant_names.index(selectedPollutant) # Gets index of pollutant for cmap range
 
     # Use stored zoom and center if available

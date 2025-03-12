@@ -47,9 +47,12 @@ def layout():
             interval=5000, # in milliseconds
             n_intervals=0
         ),
+        
+        # Store map state
+        dcc.Store(id='trendline-store', data={}),
     ])
 
-def update_graph(selectedSensor, n_intervals):
+def update_graph(selectedSensor, n_intervals, stored_data):
     global df, sensor_names
     df = loadAndProcessData(filename)
     sensor_names=df['sensorName'].unique()
@@ -102,11 +105,29 @@ def update_graph(selectedSensor, n_intervals):
         height=375,
     )
     
+    if stored_data:
+        fig.update_layout(**stored_data.get("layout",{}))
+        if "data" in stored_data:
+            for i, trace in enumerate(fig.data):
+                if i < len(stored_data["data"]):
+                    trace.visible = stored_data["data"][i].get("visible", True)
+    
     return fig
 
 def register_callbacks(wessApp):
     wessApp.callback(
         Output('trendline-graph', 'figure'), # graph
-        Input('sensor-select', 'value'), # radio
-        Input('interval-component', 'n_intervals')  # time refresh
+        [Input('sensor-select', 'value'), # radio
+        Input('interval-component', 'n_intervals'), # time refresh
+        Input('trendline-store', 'data')]
     )(update_graph)
+    
+    wessApp.callback(
+        Output('trendline-store', 'data'),
+        [Input('trendline-graph', 'relayoutData'),
+        Input('trendline-graph', 'restyleData')],
+        prevent_initial_call=True
+    )(lambda relayoutData, restyleData: {
+        "layout":relayoutData or {},
+        "data": restyleData or []
+    })
