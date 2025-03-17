@@ -4,6 +4,8 @@ import dash
 import pandas as pd
 from dash import html, dcc, callback, Input, Output
 import plotly.express as px
+from sklearn.linear_model import LinearRegression
+import numpy as np
 
 from df_customMethods import *
 
@@ -52,13 +54,14 @@ def layout():
         dcc.Store(id='trendline-store', data={}),
     ])
 
+
 def update_graph(selectedSensor, n_intervals, stored_data):
     global df, sensor_names
     df = loadAndProcessData(filename)
-    sensor_names=df['sensorName'].unique()
+    sensor_names = df['sensorName'].unique()
 
     dfThis = df[df['sensorName'] == selectedSensor].copy()  # Filter by selected sensor
-    
+
     # Ensure 'transmitDateTime' is in datetime format
     dfThis['transmitDateTimeFormatted'] = pd.to_datetime(dfThis['transmitDateTime'], errors='coerce')
 
@@ -75,43 +78,62 @@ def update_graph(selectedSensor, n_intervals, stored_data):
     if dfThis['transmitDateTimeFormatted'].nunique() <= 1:
         print("Warning: Only one unique timestamp found for", selectedSensor)
 
-    fig = px.scatter() #create plot
+    fig = px.scatter()  # create plot
 
-    #add data to plot for each checked value
+    # add data to plot for each checked value
     for pollutant in pollutant_names:
         if pollutant in pollutant_names:  # Ensure the pollutant exists in the DataFrame
+            # Add the actual data points
             fig.add_scatter(
                 x=dfThis['transmitDateTimeFormatted'],
                 y=dfThis[pollutant],
                 mode='lines+markers',
-                marker=dict(color=pollutant_colors[pollutant], size=6,symbol='circle'), # marker on graph
+                marker=dict(color=pollutant_colors[pollutant], size=6, symbol='circle'),  # marker on graph
                 name=pollutant,
-                hovertemplate=f'{pollutant}: '+'%{y}<br>Time: %{x|%H:%M:%S}<extra></extra>' # hovertext display
+                hovertemplate=f'{pollutant}: ' + '%{y}<br>Time: %{x|%H:%M:%S}<extra></extra>'  # hovertext display
             )
-    
+
+            # Calculate the trendline
+            x = np.arange(len(dfThis['transmitDateTimeFormatted'])).reshape(-1, 1)
+            y = dfThis[pollutant].values.reshape(-1, 1)
+            model = LinearRegression()
+            model.fit(x, y)
+            trendline = model.predict(x)
+
+            # Add the trendline
+            fig.add_scatter(
+                x=dfThis['transmitDateTimeFormatted'],
+                y=trendline.flatten(),
+                mode='lines',
+                line=dict(color=pollutant_colors[pollutant], width=2, dash='dash'),
+                name=f'{pollutant} Trendline',
+                hoverinfo='none'
+            )
+
     # Update layout
     fig.update_layout(
-        hovermode='closest', # style of hover text
-        title=f"Pollutants at {selectedSensor}", # figure title
-        xaxis_title="DateTime", # x axis
-        yaxis_title="Concentration (PPM)", # y axis
-        xaxis=dict(tickformat="%m-%d-%Y", type='date'), # convert datetime format
-        legend=dict( #format legend
+        hovermode='closest',  # style of hover text
+        title=f"Pollutants at {selectedSensor}",  # figure title
+        xaxis_title="DateTime",  # x axis
+        yaxis_title="Concentration (PPM)",  # y axis
+        xaxis=dict(tickformat="%m-%d-%Y", type='date'),  # convert datetime format
+        legend=dict(  # format legend
             orientation='h',
             x=0.5, y=1,
             xanchor='center', yanchor='bottom',
         ),
-        margin=dict(l=40, r=40, t=40, b=40), # space for legend
+        margin=dict(l=40, r=40, t=40, b=40),  # space for legend
         height=375,
     )
-    
+
+    # Restore stored layout and visibility settings
     if stored_data:
-        fig.update_layout(**stored_data.get("layout",{}))
+        fig.update_layout(**stored_data.get("layout", {}))
         if "data" in stored_data:
             for i, trace in enumerate(fig.data):
                 if i < len(stored_data["data"]):
                     trace.visible = stored_data["data"][i].get("visible", True)
-    
+
     return fig
 
 def register_callbacks(wessApp):
