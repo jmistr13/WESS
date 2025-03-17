@@ -9,7 +9,7 @@ def generate_new_file():
 	# Set up variables and parameters
 	global filename, row_count
 	file_date = datetime.now().strftime("%Y-%m-%d")
-	filename = f"{file_date}_readings.csv"
+	filename = "2025-03-12_readings.csv" # constant for now
 	row_count = 0 # New file created after 1000 rows, reset counter when new file is generated
 	
 	# Add header to csv

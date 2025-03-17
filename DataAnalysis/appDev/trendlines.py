@@ -66,7 +66,7 @@ def update_graph(selectedSensor, n_intervals):
     dfThis = dfThis.sort_values(by='transmitDateTimeFormatted')
 
     # Keep only latest 50 values
-    dfThis = dfThis.tail(50)
+    dfThis = dfThis.tail(25)
 
     # Ensure we have multiple timestamps
     if dfThis['transmitDateTimeFormatted'].nunique() <= 1:
