@@ -1,0 +1,2 @@
+sensorName,lat,long,transmitDateTime,CO,NO2,NH3,TDS,turbidity
+test,sensorName,lat,long,transmitDateTime,CO,NO2,NH3,TDS,turbidity
