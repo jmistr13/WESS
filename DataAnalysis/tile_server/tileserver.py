@@ -2,6 +2,8 @@ from flask import Flask, send_file
 from flask_cors import CORS
 import os
 
+#This file was intended to allow for local hosting of tiles for mapping function offline, remains unfinished
+
 app = Flask(__name__)
 CORS(app)
 
