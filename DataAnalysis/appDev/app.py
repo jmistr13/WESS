@@ -46,7 +46,15 @@ map.register_callbacks(app)
 trendlines.register_callbacks(app)
 connections.register_callbacks(app)
 
-#server = app.server
+# server = app.server
+#
+# if __name__ == '__main__':
+#     app.run(host='0.0.0.0', debug=False, port=8050)
+
+server = app.server  # Expose server for Ploomber Cloud
+
+def main():
+    app.run(host='0.0.0.0', debug=False, port=8080)  # Use port 8080 as required by Ploomber
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=False, port=8050)
+    main()

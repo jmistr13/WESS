@@ -7,7 +7,7 @@ import os
 # Replace string with desired csv path
 def csv_path():
     #return 'DataAnalysis/appDev/2025-03-11_readings.csv' #for windows
-    return '2025-03-12_readings.csv' #for linux
+    return '2025-03-17_readings.csv' #for linux
 
 def loadAndProcessData(filename):
     this_df = pd.read_csv(filename, usecols=['sensorName', 'lat', 'long', 'transmitDateTime', 'CO', 'NH3', 'NO2', 'TDS', 'turbidity'],
