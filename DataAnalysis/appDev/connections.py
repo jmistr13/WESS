@@ -41,7 +41,7 @@ from datetime import datetime
 import pandas as pd
 
 # Assuming these functions are defined in customMethods and df_customMethods
-from customMethods import get_wifi_name, get_local_ip
+#from customMethods import get_wifi_name, get_local_ip
 from df_customMethods import *
 
 # Load and process data
@@ -53,9 +53,9 @@ def layout():
         html.H2("Would you like to see this data on your mobile device?"),
         html.P([
             "Connect to ",
-            html.Strong(get_wifi_name()),  # Makes the Wi-Fi name bold
+            html.Strong('Sample Wifi name'),  # Makes the Wi-Fi name bold
             " and navigate to ",
-            html.Strong(f"{get_local_ip()}:8050"),  # Makes the IP address bold
+            html.Strong('Sample IP address'),  # Makes the IP address bold
             " on your mobile device."
         ]),
         html.Button("Download Current Data", id="btn-data-download"),
@@ -63,8 +63,8 @@ def layout():
     ])
 
 #
-def register_callbacks(wessApp):
-    @wessApp.callback(
+def register_callbacks(app):
+    @app.callback(
         Output('data-download', 'data'),  # Output is the download component
         Input('btn-data-download', 'n_clicks'),  # Input is the button click
         #prevent_initial_call=True  # Prevents the callback from firing on page load

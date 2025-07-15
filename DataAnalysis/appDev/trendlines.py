@@ -104,8 +104,8 @@ def update_graph(selectedSensor, n_intervals):
     
     return fig
 
-def register_callbacks(wessApp):
-    wessApp.callback(
+def register_callbacks(app):
+    app.callback(
         Output('trendline-graph', 'figure'), # graph
         Input('sensor-select', 'value'), # radio
         Input('interval-component', 'n_intervals')  # time refresh

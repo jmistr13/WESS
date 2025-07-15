@@ -102,9 +102,9 @@ def update_map(selectedPollutant,n_intervals,stored_data):
 def update_title(selectedPollutant):
     return f'Most Recent {selectedPollutant} Readings (PPM)'
 
-def register_callbacks(wessApp):
+def register_callbacks(app):
     # Update the map when the selection changes or the CSV updates
-    wessApp.callback(
+    app.callback(
         Output('sensor-map', 'figure'), # Map return
         Input('data-select', 'value'), # Dropdown selsction
         Input('interval-component', 'n_intervals'),  # Refreshes periodically
@@ -112,7 +112,7 @@ def register_callbacks(wessApp):
     )(update_map)
 
     # Store the map's zoom and center state when the user interacts
-    wessApp.callback(
+    app.callback(
         Output('map-store', 'data'),
         Input('sensor-map', 'relayoutData'),
         prevent_initial_call=True  # Avoid triggering on startup
@@ -122,7 +122,7 @@ def register_callbacks(wessApp):
     })
 
     # Update the H2 title when the pollutant selection changes
-    wessApp.callback(
+    app.callback(
         Output('graph-title', 'children'),  # Fix: Use 'children' instead of 'value'
         Input('data-select', 'value')
     )(update_title)

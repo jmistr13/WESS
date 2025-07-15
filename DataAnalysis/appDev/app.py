@@ -9,8 +9,8 @@ import map, trendlines, connections
 
 # To change what CSV is used, update filepath in df_custom_methods.py
 
-wessApp = Dash(__name__, use_pages=False, suppress_callback_exceptions=True)
-wessApp.layout = html.Div([
+app = Dash(__name__, use_pages=False, suppress_callback_exceptions=True)
+app.layout = html.Div([
     html.H1('Wireless Environmental Sensor System'),
     dcc.Tabs(
         id="tabs",
@@ -29,7 +29,7 @@ wessApp.layout = html.Div([
     html.Div(id="tab-content"),
 ])
 
-@wessApp.callback(
+@app.callback(
     Output('tab-content', 'children'),
     Input('tabs', 'value')
 )
@@ -42,9 +42,11 @@ def render_page(tab_value):
     elif(tab_value=='connections'):
         return connections.layout()
 
-map.register_callbacks(wessApp)
-trendlines.register_callbacks(wessApp)
-connections.register_callbacks(wessApp)
+map.register_callbacks(app)
+trendlines.register_callbacks(app)
+connections.register_callbacks(app)
+
+#server = app.server
 
 if __name__ == '__main__':
-    wessApp.run(host='0.0.0.0', debug=False, port=8050)
+    app.run(host='0.0.0.0', debug=False, port=8050)
