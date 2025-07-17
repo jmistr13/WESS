@@ -23,11 +23,11 @@
 [![Interface Phase 2 Connection](Frontend%20Interface/Phase_2_Connection.png)](Frontend%20Interface/Phase_2_Connection.png)
 
 ## Phase 2
-[![Interface Phase 3 Map](Frontend%20Interface/Phase_3_Map.PNG)](Frontend%20Interface/Phase_3_Map.PNG)
+[![Interface Phase 3 Map](Frontend%20Interface/Phase_3_Map.png)](Frontend%20Interface/Phase_3_Map.png)
 
-[![Interface Phase 3 Trendline](Frontend%20Interface/Phase_3_Trendline.PNG)](Frontend%20Interface/Phase_3_Trendline.PNG)
+[![Interface Phase 3 Trendline](Frontend%20Interface/Phase_3_Trendline.png)](Frontend%20Interface/Phase_3_Trendline.png)
 
-[![Interface Phase 3 Connection](Frontend%20Interface/Phase_3_Connection.PNG)](Frontend%20Interface/Phase_3_Connection.PNG)
+[![Interface Phase 3 Connection](Frontend%20Interface/Phase_3_Connection.png)](Frontend%20Interface/Phase_3_Connection.png)
 
 
 # Node Drawings
