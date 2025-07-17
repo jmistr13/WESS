@@ -2,14 +2,16 @@
 
 # Setup Photos
 [![Entire WESS Setup](Setup%20Photos/6.jpg)](Setup%20Photos/6.jpg)
+
 [![Dummy Node Overhead](Setup%20Photos/1.jpg)](Setup%20Photos/1.jpg)
+
 [![Dummy Node Low Angle](Setup%20Photos/2.jpg)](Setup%20Photos/2.jpg)
+
 [![Child Node Low Anlge](Setup%20Photos/3.jpg)](Setup%20Photos/3.jpg)
+
 [![Child Node Overhead](Setup%20Photos/4.jpg)](Setup%20Photos/4.jpg)
+
 [![WESS Interface on Touchscreen](Setup%20Photos/5.jpg)](Setup%20Photos/5.jpg)
-
-
-
 
 # Frontend Interface
 ## Phase 1
@@ -28,7 +30,6 @@
 [![Interface Phase 3 Trendline](Frontend%20Interface/Phase_3_Trendline.png)](Frontend%20Interface/Phase_3_Trendline.png)
 
 [![Interface Phase 3 Connection](Frontend%20Interface/Phase_3_Connection.png)](Frontend%20Interface/Phase_3_Connection.png)
-
 
 # Node Drawings
 [![Child Node Drawing](Node%20Drawings/child_node.png)](Node%20Drawings/child_node.png)
