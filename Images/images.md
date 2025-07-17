@@ -13,14 +13,14 @@
 
 # Frontend Interface
 ## Phase 1
-[![Interface Phase 1](Frontend%20Interface/Phase_1_Interface.PNG)](Frontend%20Interface/Phase_1_Interface.PNG)
+[![Interface Phase 1](Frontend%20Interface/Phase_1_Interface.png)](Frontend%20Interface/Phase_1_Interface.png)
 
 ## Phase 2
-[![Interface Phase 2 Map](Frontend%20Interface/Phase_2_Map.PNG)](Frontend%20Interface/Phase_2_Map.PNG)
+[![Interface Phase 2 Map](Frontend%20Interface/Phase_2_Map.png)](Frontend%20Interface/Phase_2_Map.png)
 
-[![Interface Phase 2 Trendline](Frontend%20Interface/Phase_2_Trendline.PNG)](Frontend%20Interface/Phase_2_Trendline.PNG)
+[![Interface Phase 2 Trendline](Frontend%20Interface/Phase_2_Trendline.png)](Frontend%20Interface/Phase_2_Trendline.png)
 
-[![Interface Phase 2 Connection](Frontend%20Interface/Phase_2_Connection.PNG)](Frontend%20Interface/Phase_2_Connection.PNG)
+[![Interface Phase 2 Connection](Frontend%20Interface/Phase_2_Connection.png)](Frontend%20Interface/Phase_2_Connection.png)
 
 ## Phase 2
 [![Interface Phase 3 Map](Frontend%20Interface/Phase_3_Map.PNG)](Frontend%20Interface/Phase_3_Map.PNG)

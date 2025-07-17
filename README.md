@@ -28,13 +28,14 @@ Jesse Mistr
 <br>
 
 # Documentation:
+## [Images](Images/images.md)
+
 ## Poster:
 [![WESS Poster](Documentation/475_group5_project_poster_WESS.png)](Documentation/475_group5_project_poster_WESS.png)
 
 ## Report:
 [![WESS Report](Documentation/Report%20Thumbnail.PNG)](Documentation/W.E.S.S%20Final%20Report%20Group%205.pdf)
 
-## [Images](Images/images.md)
 
 
 <em>The WESS team would like to thank the UW ECE Winter 2025 Embedded Systems Capstone staff  for their invaluable guidance
