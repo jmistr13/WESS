@@ -9,7 +9,7 @@ To run the frontend webserver and data collection, we recommend using the
 as well where you install the project files. Note the [requirements.txt](requirements.txt) file lists the python packages necessary. We recommend using [Python 3.10](https://www.python.org/downloads/release/python-3100/) to run the 
 frontend, due to dependency issues with some packages.
 
-A slightly modified version of thr frontend running on Ploomber web hosting can be found [here](https://tinyurl.com/WESS-app1)
+A slightly modified version of the frontend running on Ploomber web hosting can be found [here](https://tinyurl.com/WESS-app1)
 
 # Developers:
 ## Data Aquisition
